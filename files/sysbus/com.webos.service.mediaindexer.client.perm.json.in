@@ -1,6 +1,5 @@
 {
     "com.webos.service.mediaindexer.client*": [
-        "mediaindexer.operation",
-        "mediadatabase.management"
+        "mediaindexer.operation"
     ]
 }

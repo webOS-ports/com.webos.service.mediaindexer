@@ -1,22 +1,19 @@
 {
     "com.webos.service.mediaindexer": [
-        "mediadatabase.operation",
-        "mediadatabase.management",
-        "physicaldevice.query"
+        "all",
+        "database.internal",
+        "settings"
     ],
     "com.webos.service.mediaindexer.media": [
-        "mediadatabase.operation",
-        "mediadatabase.management",
-        "physicaldevice.query"
+        "all",
+        "database.internal"
     ],
     "com.webos.service.mediaindexer.devices": [
-        "mediadatabase.operation",
-        "mediadatabase.management",
-        "physicaldevice.query"
+        "all",
+        "database.internal"
     ],
     "com.webos.service.mediaindexer.settings": [
-        "mediadatabase.operation",
-        "mediadatabase.management",
-        "physicaldevice.query"
+        "all",
+        "database.internal"
     ]
 }
