@@ -14,7 +14,8 @@
                 "com.webos.service.pdm",
                 "com.webos.mediadb",
                 "com.webos.settingsservice",
-                "com.webos.service.mediaindexer.client*"
+                "com.webos.service.mediaindexer.client*",
+                "com.webos.app.*"
             ]
         },
         {
