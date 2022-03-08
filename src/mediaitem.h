@@ -427,7 +427,7 @@ private:
     LOG_MSGID;
 
     /// Device mandatory for construction.
-    MediaItem() {};
+    MediaItem() : type_(Type::EOL), hash_(0), filesize_(0), parsed_(false), extractorType_(MediaItem::ExtractorType::EOL) {};
 
     /// Device this media item belongs to.
     std::shared_ptr<Device> device_;

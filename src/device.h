@@ -341,7 +341,7 @@ private:
     LOG_MSGID;
 
     /// Uri mandatory for construction.
-    Device() {};
+    Device(): state_(Device::State::Inactive), available_(false), alive_(0), maxAlive_(0), observer_(nullptr) {};
 
     /// Check and decrement alive count.
     bool checkAlive();
