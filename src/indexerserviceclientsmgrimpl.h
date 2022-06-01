@@ -40,9 +40,6 @@ public:
                        const std::string &method,
                        const LSMessageToken& token);
 private:
-    /// Get message id.
-    LOG_MSGID;
-
     std::map<LSMessageToken, std::pair<std::string, std::string>> clients_;
 
 };

@@ -108,9 +108,6 @@ public:
     }
 
 private:
-    /// Get message id.
-    LOG_MSGID;
-
     pbnjson::JValue _dom;
 };
 

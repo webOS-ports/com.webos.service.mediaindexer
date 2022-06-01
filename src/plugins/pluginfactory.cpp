@@ -76,7 +76,7 @@ std::shared_ptr<Plugin> PluginFactory::plugin(const std::string &uri) const
         plg = Storage::instance();
 #endif
 
-    LOG_INFO(0, "%s found for uri: '%s'", !!plg ? "Plugin" : "No plugin",
+    LOG_INFO(MEDIA_INDEXER_PLUGINFACTORY, 0, "%s found for uri: '%s'", !!plg ? "Plugin" : "No plugin",
         uri.c_str());
 
     return plg;

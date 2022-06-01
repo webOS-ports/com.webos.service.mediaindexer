@@ -24,22 +24,35 @@
 #include <sys/syscall.h>
 #include <sys/types.h>
 
-/// Builds a proper log message id from the filename.
-#define LOG_MSGID static const char *__msgId(void) {    \
-        static char *msgId = nullptr;                   \
-        if (!msgId) {                                   \
-            char *file = strdup(__FILE__);              \
-            char *name = basename(file);                \
-            char *sep = strrchr(name, '.');             \
-            if (sep)                                    \
-                *sep = '\0';                            \
-            msgId = strdup(name);                       \
-            for (size_t i = 0; i < strlen(msgId); ++i)  \
-                msgId[i] = toupper(msgId[i]);           \
-            free(file);                                 \
-        }                                               \
-        return msgId;                                   \
-    }
+#define MEDIA_INDEXER_CONFIGURATOR "CONFIGURATOR"
+#define MEDIA_INDEXER_DBOBSERVER "DBOBSERVER"
+#define MEDIA_INDEXER_DEVICE "DEVICE"
+#define MEDIA_INDEXER_INDEXERSERVICE "INDEXERSERVICE"
+#define MEDIA_INDEXER_INDEXERSERVICECLT "INDEXERSERVICECLIENTSMGRIMPL"
+#define MEDIA_INDEXER_LOCALEOBSERVER "LOCALEOBSERVER"
+#define MEDIA_INDEXER_MAIN "MAIN"
+#define MEDIA_INDEXER_MEDIAINDEXER "MEDIAINDEXER"
+#define MEDIA_INDEXER_MEDIAITEM "MEDIAITEM"
+#define MEDIA_INDEXER_MEDIAPARSER "MEDIAPARSER"
+#define MEDIA_INDEXER_TASK "TASK"
+#define MEDIA_INDEXER_CACHE "CACHE"
+#define MEDIA_INDEXER_CACHEMANAGER "CACHEMANAGER"
+#define MEDIA_INDEXER_DBCONNECTOR "DBCONNECTOR"
+#define MEDIA_INDEXER_DEVICEDB "DEVICEDB"
+#define MEDIA_INDEXER_LUNACONNECTOR "LUNACONNECTOR"
+#define MEDIA_INDEXER_MEDIADB "MEDIADB"
+#define MEDIA_INDEXER_SETTINGSDB "SETTINGSDB"
+#define MEDIA_INDEXER_JSONPARSER "JSONPARSER"
+#define MEDIA_INDEXER_GSTREAMEREXTRACTOR "GSTREAMEREXTRACTOR"
+#define MEDIA_INDEXER_IMAGEEXTRACTOR "IMAGEEXTRACTOR"
+#define MEDIA_INDEXER_IMETADATAEXTRACTOR "IMETADATAEXTRACTOR"
+#define MEDIA_INDEXER_TAGLIBEXTRACTOR "TAGLIBEXTRACTOR"
+#define MEDIA_INDEXER_PDMLISTENER "PDMLISTENER"
+#define MEDIA_INDEXER_MTP "MTP"
+#define MEDIA_INDEXER_PLUGIN "PLUGIN"
+#define MEDIA_INDEXER_PLUGINFACTORY "PLUGINFACTORY"
+#define MEDIA_INDEXER_STORAGE "STORAGE"
+#define MEDIA_INDEXER_UPNP "UPNP"
 
 /// Red shell output.
 #define COLOR_RED "\33[0;31m"
@@ -119,46 +132,46 @@ PmLogContext getPmLogContext();
     PmLogCritical(logContext, "[PERF]", 0, COLOR_GREEN  "<%d> %s:%s() " fmt COLOR_NC, (pid_t) syscall(__NR_gettid), __FILE__, __FUNCTION__, ##__VA_ARGS__)
 
 /// Log critical message.
-#define LOG_CRITICAL(kvcount, fmt, ...)                       \
-    PmLogCritical(logContext, __msgId(), kvcount,  "<%d> %s:%s() " fmt, (pid_t) syscall(__NR_gettid), __FILE__, __FUNCTION__, ##__VA_ARGS__)
+#define LOG_CRITICAL(__msgId, kvcount, fmt, ...)                       \
+    PmLogCritical(logContext, __msgId, kvcount,  "<%d> %s:%s() " fmt, (pid_t) syscall(__NR_gettid), __FILE__, __FUNCTION__, ##__VA_ARGS__)
 
 /// Log error message.
-#define LOG_ERROR(kvcount, fmt, ...)                          \
-    PmLogError(logContext, __msgId(), kvcount, COLOR_RED "<%d> %s:%s() " fmt COLOR_NC, (pid_t) syscall(__NR_gettid), __FILE__, __FUNCTION__, ##__VA_ARGS__)
+#define LOG_ERROR(__msgId, kvcount, fmt, ...)                          \
+    PmLogError(logContext, __msgId, kvcount, COLOR_RED "<%d> %s:%s() " fmt COLOR_NC, (pid_t) syscall(__NR_gettid), __FILE__, __FUNCTION__, ##__VA_ARGS__)
 
 /// Log warning message.
-#define LOG_WARNING(kvcount, fmt, ...)                        \
-    PmLogWarning(logContext, __msgId(), kvcount, COLOR_YELLOW "<%d> %s:%s() " fmt COLOR_NC, (pid_t) syscall(__NR_gettid), __FILE__, __FUNCTION__, ##__VA_ARGS__)
+#define LOG_WARNING(__msgId, kvcount, fmt, ...)                        \
+    PmLogWarning(logContext, __msgId, kvcount, COLOR_YELLOW "<%d> %s:%s() " fmt COLOR_NC, (pid_t) syscall(__NR_gettid), __FILE__, __FUNCTION__, ##__VA_ARGS__)
 
 /// Log info message.
-#define LOG_INFO(kvcount, fmt, ...)                           \
-    PmLogInfo(logContext, __msgId(), kvcount, COLOR_GREEN "<%d> %s:%s() " fmt COLOR_NC, (pid_t) syscall(__NR_gettid), __FILE__, __FUNCTION__, ##__VA_ARGS__)
+#define LOG_INFO(__msgId, kvcount, fmt, ...)                           \
+    PmLogInfo(logContext, __msgId, kvcount, COLOR_GREEN "<%d> %s:%s() " fmt COLOR_NC, (pid_t) syscall(__NR_gettid), __FILE__, __FUNCTION__, ##__VA_ARGS__)
 
 /// Debug log.
-#define LOG_DEBUG(fmt, ...)                                             \
-    PmLogDebug(logContext, COLOR_BLUE "%s <%d> %s:%s() " fmt COLOR_NC, __msgId(), (pid_t) syscall(__NR_gettid), __FILE__, __FUNCTION__, ##__VA_ARGS__)
+#define LOG_DEBUG(__msgId, fmt, ...)                                             \
+    PmLogDebug(logContext, COLOR_BLUE "%s <%d> %s:%s() " fmt COLOR_NC, __msgId, (pid_t) syscall(__NR_gettid), __FILE__, __FUNCTION__, ##__VA_ARGS__)
 #else
 
 #define LOG_PERF(fmt, ...)                                    \
     PmLogCritical(logContext, COLOR_GREEN "[PERF]", 0, "%s:%s() " fmt COLOR_NC, __FILE__, __FUNCTION__, ##__VA_ARGS__)
 
 /// Log critical message.
-#define LOG_CRITICAL(kvcount, fmt, ...)                       \
-    PmLogCritical(logContext, __msgId(), kvcount,  "%s:%s() " fmt, __FILE__, __FUNCTION__, ##__VA_ARGS__)
+#define LOG_CRITICAL(__msgId, kvcount, fmt, ...)                       \
+    PmLogCritical(logContext, __msgId, kvcount,  "%s:%s() " fmt, __FILE__, __FUNCTION__, ##__VA_ARGS__)
 
 /// Log error message.
-#define LOG_ERROR(kvcount, fmt, ...)                          \
-    PmLogError(logContext, __msgId(), kvcount, COLOR_RED "%s:%s() " fmt COLOR_NC, __FILE__, __FUNCTION__, ##__VA_ARGS__)
+#define LOG_ERROR(__msgId, kvcount, fmt, ...)                          \
+    PmLogError(logContext, __msgId, kvcount, COLOR_RED "%s:%s() " fmt COLOR_NC, __FILE__, __FUNCTION__, ##__VA_ARGS__)
 
 /// Log warning message.
-#define LOG_WARNING(kvcount, fmt, ...)                        \
-    PmLogWarning(logContext, __msgId(), kvcount, COLOR_YELLOW "%s:%s() " fmt COLOR_NC, __FILE__, __FUNCTION__, ##__VA_ARGS__)
+#define LOG_WARNING(__msgId, kvcount, fmt, ...)                        \
+    PmLogWarning(logContext, __msgId, kvcount, COLOR_YELLOW "%s:%s() " fmt COLOR_NC, __FILE__, __FUNCTION__, ##__VA_ARGS__)
 
 /// Log info message.
-#define LOG_INFO(kvcount, fmt, ...)                           \
-    PmLogInfo(logContext, __msgId(), kvcount, COLOR_GREEN "%s:%s() " fmt COLOR_NC, __FILE__, __FUNCTION__, ##__VA_ARGS__)
+#define LOG_INFO(__msgId, kvcount, fmt, ...)                           \
+    PmLogInfo(logContext, __msgId, kvcount, COLOR_GREEN "%s:%s() " fmt COLOR_NC, __FILE__, __FUNCTION__, ##__VA_ARGS__)
 
 /// Debug log.
-#define LOG_DEBUG(fmt, ...)                                             \
-    PmLogDebug(logContext, COLOR_BLUE "%s %s:%s() " fmt COLOR_NC, __msgId(), __FILE__, __FUNCTION__, ##__VA_ARGS__)
+#define LOG_DEBUG(__msgId, fmt, ...)                                             \
+    PmLogDebug(logContext, COLOR_BLUE "%s %s:%s() " fmt COLOR_NC, __msgId, __FILE__, __FUNCTION__, ##__VA_ARGS__)
 #endif

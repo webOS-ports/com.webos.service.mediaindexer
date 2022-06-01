@@ -30,9 +30,9 @@ bool DbObserver::registerServerStatusCallback(LSHandle * hdl, LSMessage * msg, v
     DbObserver * self = static_cast<DbObserver*>(ctx);
     pbnjson::JDomParser parser(pbnjson::JSchema::AllSchema());
     const char *payload = LSMessageGetPayload(msg);
-    LOG_DEBUG("payload : %s",payload);
+    LOG_DEBUG(MEDIA_INDEXER_DBOBSERVER, "payload : %s",payload);
     if (!parser.parse(payload)) {
-            LOG_ERROR(0, "Invalid JSON message: %s", payload);
+            LOG_ERROR(MEDIA_INDEXER_DBOBSERVER, 0, "Invalid JSON message: %s", payload);
             return false;
     }
 
@@ -52,7 +52,7 @@ bool DbObserver::sendMessage(const std::string &uri, const std::string &payload,
     bool ret = true;
     lunaError_t lunaErr;
     if (!LSCall(handle_, uri.c_str(), payload.c_str(), cb, ctx, NULL, &lunaErr)) {
-        LOG_ERROR(0, "Failed to send message, uri : %s, payload : %s",uri.c_str(), payload.c_str());
+        LOG_ERROR(MEDIA_INDEXER_DBOBSERVER, 0, "Failed to send message, uri : %s, payload : %s",uri.c_str(), payload.c_str());
         return false;
     }
     return true;

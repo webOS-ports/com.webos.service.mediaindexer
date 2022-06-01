@@ -40,9 +40,9 @@ void MediaParser::enqueueTask(MediaItemPtr mediaItem)
     mParser->mediaItemQueue_.push(std::move(mediaItem));
     GError *error = nullptr;
     if (!g_thread_pool_push(mParser->pool, static_cast<void*>(&type), &error)) {
-        LOG_ERROR(0, "Fail occurred in g_thread_pool_push");
+        LOG_ERROR(MEDIA_INDEXER_MEDIAPARSER, 0, "Fail occurred in g_thread_pool_push");
         if (error) {
-            LOG_ERROR(0, "Error Message : %s", error->message);
+            LOG_ERROR(MEDIA_INDEXER_MEDIAPARSER, 0, "Error Message : %s", error->message);
             g_error_free(error);
         }
     }
@@ -61,7 +61,7 @@ MediaParser::~MediaParser()
 {
     // all threads are running in detached mode so no need to cleanup
     // anything here
-    LOG_INFO(0, "MediaParser Dtor!!!");
+    LOG_INFO(MEDIA_INDEXER_MEDIAPARSER, 0, "MediaParser Dtor!!!");
     g_thread_pool_free(pool, TRUE, TRUE);
     //mediaItem_.reset();
 }
@@ -107,7 +107,7 @@ bool MediaParser::setMediaItem(std::string & uri)
         mediaItem_.reset();
     mediaItem_ = std::make_unique<MediaItem>(uri);
     if (mediaItem_.get() == nullptr) {
-        LOG_ERROR(0, "Failed to get mediaitem!");
+        LOG_ERROR(MEDIA_INDEXER_MEDIAPARSER, 0, "Failed to get mediaitem!");
         return false;
     }
     return true;
@@ -119,10 +119,10 @@ bool MediaParser::extractExtraMeta(pbnjson::JValue &meta)
         std::lock_guard<std::mutex> lock(mediaItemLock_);
         auto mi = mediaItem_.get();
         if (mi == nullptr) {
-            LOG_ERROR(0, "Media Item is invalid");
+            LOG_ERROR(MEDIA_INDEXER_MEDIAPARSER, 0, "Media Item is invalid");
             return false;
         }
-        LOG_DEBUG("Media item to extract %p with parser %p", mi, this);
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAPARSER, "Media item to extract %p with parser %p", mi, this);
         auto path = mediaItem_->path();
 
         if (*path.begin() == '/') {
@@ -132,8 +132,8 @@ bool MediaParser::extractExtraMeta(pbnjson::JValue &meta)
                 extractor_[p]->extractMeta(*mi, true);
                 mi->setParsed(true);
             } else {
-                LOG_WARNING(0, "Could not found valid extractor, type : %s, ext : %s", MediaItem::mediaTypeToString(mediaItem_->type()).c_str(), mi->ext().c_str());
-                LOG_DEBUG("Create new extractor");
+                LOG_WARNING(MEDIA_INDEXER_MEDIAPARSER, 0, "Could not found valid extractor, type : %s, ext : %s", MediaItem::mediaTypeToString(mediaItem_->type()).c_str(), mi->ext().c_str());
+                LOG_DEBUG(MEDIA_INDEXER_MEDIAPARSER, "Create new extractor");
                 extractor_[p] = IMetaDataExtractor::extractor(p);
                 extractor_[p]->extractMeta(*mi, true);
                 mi->setParsed(true);
@@ -144,15 +144,15 @@ bool MediaParser::extractExtraMeta(pbnjson::JValue &meta)
             mi->setParsed(true);
         }
         if (!mediaItem_->putExtraMetaToJson(meta)) {
-            LOG_ERROR(0, "Failed to put meta to json");
+            LOG_ERROR(MEDIA_INDEXER_MEDIAPARSER, 0, "Failed to put meta to json");
             return false;
         }
         mediaItem_.reset();
     } catch (const std::exception & e) {
-        LOG_ERROR(0, "MediaParser::extractMeta failure: %s", e.what());
+        LOG_ERROR(MEDIA_INDEXER_MEDIAPARSER, 0, "MediaParser::extractMeta failure: %s", e.what());
         return false;
     } catch (...) {
-        LOG_ERROR(0, "MediaParser::extractMeta failure by unexpected failure");
+        LOG_ERROR(MEDIA_INDEXER_MEDIAPARSER, 0, "MediaParser::extractMeta failure by unexpected failure");
         return false;
     }
     return true;
@@ -163,7 +163,7 @@ void MediaParser::extractMeta(void *data, void *user_data)
     // make sure we are deleted when this method terminates
     try {
         if (!data || !user_data) {
-            LOG_ERROR(0, "Invalid Input parameters");
+            LOG_ERROR(MEDIA_INDEXER_MEDIAPARSER, 0, "Invalid Input parameters");
             return;
         }
         MediaParser *mp = static_cast<MediaParser *>(user_data);
@@ -176,13 +176,13 @@ void MediaParser::extractMeta(void *data, void *user_data)
             mp->mediaItemQueue_.pop();
         }
 
-        LOG_DEBUG("Media item to extract %p with parser %p", mip.get(), mp);
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAPARSER, "Media item to extract %p with parser %p", mip.get(), mp);
 
         auto path = mip->path();
         if (*path.begin() == '/') {
             MediaItem::ExtractorType p = mip->extractorType();
             if (!extractor_[p]->extractMeta(*mip)) {
-                LOG_WARNING(0, "%s meta data extraction failed!", mip->uri().c_str());
+                LOG_WARNING(MEDIA_INDEXER_MEDIAPARSER, 0, "%s meta data extraction failed!", mip->uri().c_str());
             }
         } else {
             auto plg = PluginFactory().plugin(mip->uri());
@@ -190,14 +190,14 @@ void MediaParser::extractMeta(void *data, void *user_data)
         }
 
         mip->setParsed(true);
-        LOG_DEBUG("Pushing parsed mediaitem %p to mdb, updateMediaItem start", mip.get());
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAPARSER, "Pushing parsed mediaitem %p to mdb, updateMediaItem start", mip.get());
         auto mdb = MediaDb::instance();
         mdb->updateMediaItem(std::move(mip));
-        LOG_DEBUG("mdb->updateMediaItem Done");
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAPARSER, "mdb->updateMediaItem Done");
 
     } catch (const std::exception & e) {
-        LOG_ERROR(0, "MediaParser::extractMeta failure: %s", e.what());
+        LOG_ERROR(MEDIA_INDEXER_MEDIAPARSER, 0, "MediaParser::extractMeta failure: %s", e.what());
     } catch (...) {
-        LOG_ERROR(0, "MediaParser::extractMeta failure by unexpected failure");
+        LOG_ERROR(MEDIA_INDEXER_MEDIAPARSER, 0, "MediaParser::extractMeta failure by unexpected failure");
     }
 }

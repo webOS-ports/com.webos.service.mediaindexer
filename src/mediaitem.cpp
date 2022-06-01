@@ -96,7 +96,7 @@ bool MediaItem::mimeTypeSupported(const std::string &mime)
             return true;
     }
 
-    LOG_DEBUG("MIME type '%s' not supported", mime.c_str());
+    LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "MIME type '%s' not supported", mime.c_str());
 
     return false;
 }
@@ -104,12 +104,12 @@ bool MediaItem::mimeTypeSupported(const std::string &mime)
 bool MediaItem::extTypeSupported(const std::string &ext)
 {
     if (ext.empty()) {
-        LOG_ERROR(0, "Input fpath is invalid");
+        LOG_ERROR(MEDIA_INDEXER_MEDIAITEM, 0, "Input fpath is invalid");
         return false;
     }
     auto it = std::find(notSupportedExt_.begin(), notSupportedExt_.end(), ext);
     if (it != notSupportedExt_.end()) {
-        LOG_DEBUG("ext %s is not supported extension", ext.c_str());
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "ext %s is not supported extension", ext.c_str());
         return false;
     }
     return true;
@@ -124,10 +124,10 @@ bool MediaItem::mediaItemSupported(const std::string &path, std::string &mimeTyp
     contentType = g_content_type_guess(path.c_str(), NULL, 0,
         &uncertain);
 
-    LOG_DEBUG("contentType : %s", contentType);
+    LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "contentType : %s", contentType);
 
     if (!contentType) {
-        LOG_INFO(0, "MIME type detection is failed for '%s'",
+        LOG_INFO(MEDIA_INDEXER_MEDIAITEM, 0, "MIME type detection is failed for '%s'",
             path.c_str());
         return false;
     }
@@ -135,13 +135,13 @@ bool MediaItem::mediaItemSupported(const std::string &path, std::string &mimeTyp
     g_free(contentType);
     std::string ext = path.substr(path.find_last_of('.') + 1);
     if (!extTypeSupported(ext)) {
-        LOG_DEBUG("skip file scanning for %s", path.c_str());
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "skip file scanning for %s", path.c_str());
         return false;
     }
     _mimeTypeSupported = mimeTypeSupported(mimeType);
     if (!_mimeTypeSupported) {
         // get the file extension for the ts or ps.
-        LOG_DEBUG("scan ext '%s'", ext.c_str());
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "scan ext '%s'", ext.c_str());
 
         //TODO: switch case
         if (!ext.compare("ts"))
@@ -151,7 +151,7 @@ bool MediaItem::mediaItemSupported(const std::string &path, std::string &mimeTyp
         else if (!ext.compare("asf"))
             mimeType = std::string("video/x-asf");
         else {
-            LOG_INFO(0, "it's NOT ts/ps/asf. need to check for '%s'", path.c_str());
+            LOG_INFO(MEDIA_INDEXER_MEDIAITEM, 0, "it's NOT ts/ps/asf. need to check for '%s'", path.c_str());
             return false;
         }
         // again check the mimtType supported or not.
@@ -159,7 +159,7 @@ bool MediaItem::mediaItemSupported(const std::string &path, std::string &mimeTyp
     }
 
     if (uncertain && !_mimeTypeSupported) {
-        LOG_INFO(0, "Invalid MIME type for '%s'", path.c_str());
+        LOG_INFO(MEDIA_INDEXER_MEDIAITEM, 0, "Invalid MIME type for '%s'", path.c_str());
         return false;
     }
     return true;
@@ -175,7 +175,7 @@ MediaItem::Type MediaItem::typeFromMime(const std::string &mime)
             return type;
     }
 
-    LOG_DEBUG("MIME type '%s' not supported", mime.c_str());
+    LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "MIME type '%s' not supported", mime.c_str());
     return MediaItem::Type::EOL;
 }
 
@@ -267,28 +267,28 @@ bool MediaItem::putProperties(std::string metaStr, std::optional<MediaItem::Meta
         switch (content.index()) {
             case 0:
                 props.put(metaStr, std::get<std::int64_t>(content));
-                LOG_DEBUG("Setting '%s' to '%" PRIu64 "'", metaStr.c_str(), std::get<std::int64_t>(content));
+                LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "Setting '%s' to '%" PRIu64 "'", metaStr.c_str(), std::get<std::int64_t>(content));
                 break;
             case 1:
                 props.put(metaStr, std::get<double>(content));
-                LOG_DEBUG("Setting '%s' to '%f'", metaStr.c_str(), std::get<double>(content));
+                LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "Setting '%s' to '%f'", metaStr.c_str(), std::get<double>(content));
                 break;
             case 2:
                 props.put(metaStr, std::get<std::int32_t>(content));
-                LOG_DEBUG("Setting '%s' to '%d'", metaStr.c_str(), std::get<std::int32_t>(content));
+                LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "Setting '%s' to '%d'", metaStr.c_str(), std::get<std::int32_t>(content));
                 break;
             case 3:
                 props.put(metaStr, std::get<std::string>(content));
-                LOG_DEBUG("Setting '%s' to '%s'", metaStr.c_str(), std::get<std::string>(content).c_str());
+                LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "Setting '%s' to '%s'", metaStr.c_str(), std::get<std::string>(content).c_str());
                 break;
             case 4:
                 props.put(metaStr, static_cast<int32_t>(std::get<std::uint32_t>(content)));
-                LOG_DEBUG("Setting '%s' to '%d'", metaStr.c_str(), std::get<std::uint32_t>(content));
+                LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "Setting '%s' to '%d'", metaStr.c_str(), std::get<std::uint32_t>(content));
                 break;
         }
     } else {
         props.put(metaStr, std::string(""));
-        LOG_WARNING(0, "data doesn't have value for meta type %s",metaStr.c_str());
+        LOG_WARNING(MEDIA_INDEXER_MEDIAITEM, 0, "data doesn't have value for meta type %s",metaStr.c_str());
     }
     return true;
 }
@@ -331,7 +331,7 @@ MediaItem::MediaItem(std::shared_ptr<Device> device, const std::string &path,
     , ext_("")
     , extractorType_(MediaItem::ExtractorType::EOL)
 {
-    LOG_DEBUG("path : %s, mime : %s, device->uri : %s", path.c_str(), mime.c_str(), device->uri().c_str());
+    LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "path : %s, mime : %s, device->uri : %s", path.c_str(), mime.c_str(), device->uri().c_str());
     // create uri
     uri_ = device->uri();
     if (uri_.back() != '/' && path.front() != '/')
@@ -373,7 +373,7 @@ MediaItem::MediaItem(std::shared_ptr<Device> device, const std::string &path,
     , ext_(ext)
     , extractorType_(extType)
 {
-    LOG_DEBUG("path : %s, mime : %s, device->uri : %s", path.c_str(), mime.c_str(),
+    LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "path : %s, mime : %s, device->uri : %s", path.c_str(), mime.c_str(),
             device->uri().c_str());
     // create uri
     uri_ = device->uri();
@@ -400,7 +400,7 @@ MediaItem::MediaItem(std::shared_ptr<Device> device, const std::string &path,
     , ext_("")
     , extractorType_(MediaItem::ExtractorType::EOL)
 {
-    LOG_DEBUG("path : %s, device->uri : %s", path.c_str(), device->uri().c_str());
+    LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "path : %s, device->uri : %s", path.c_str(), device->uri().c_str());
     // create uri
     uri_ = device->uri();
     if (uri_.back() != '/' && path.front() != '/')
@@ -421,14 +421,14 @@ MediaItem::MediaItem(const std::string &uri)
     , extractorType_(MediaItem::ExtractorType::EOL)
 {
     try {
-        LOG_DEBUG("uri_ : %s, device->uri() : %s", uri_.c_str(), device_->uri().c_str());
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "uri_ : %s, device->uri() : %s", uri_.c_str(), device_->uri().c_str());
         std::size_t sz = uri_.find(device_->uri());
         if (sz == std::string::npos) {
-            LOG_ERROR(0, "Failed to found %s for uri : %s",device_->uri().c_str(), uri_.c_str());
+            LOG_ERROR(MEDIA_INDEXER_MEDIAITEM, 0, "Failed to found %s for uri : %s",device_->uri().c_str(), uri_.c_str());
         }
         sz += device_->uri().length();
         path_ = uri_.substr(sz);
-        LOG_DEBUG("path_ : %s",path_.c_str());
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "path_ : %s",path_.c_str());
         ext_ = path_.substr(path_.find_last_of('.') + 1);
         auto fpath = std::filesystem::path(path_);
         filesize_ = std::filesystem::file_size(fpath);
@@ -438,7 +438,7 @@ MediaItem::MediaItem(const std::string &uri)
         thumbnailFileName_ = generateRandFilename() + THUMBNAIL_EXTENSION;
 
         if (!MediaItem::mediaItemSupported(path_, mime_)) {
-            LOG_ERROR(0, "Media Item %s is not supported by this system", path_.c_str());
+            LOG_ERROR(MEDIA_INDEXER_MEDIAITEM, 0, "Media Item %s is not supported by this system", path_.c_str());
             throw std::runtime_error("error");
         }
 
@@ -453,9 +453,9 @@ MediaItem::MediaItem(const std::string &uri)
             break;
         }
     } catch (const std::exception & e) {
-        LOG_ERROR(0, "MediaItem::Ctor failure: %s", e.what());
+        LOG_ERROR(MEDIA_INDEXER_MEDIAITEM, 0, "MediaItem::Ctor failure: %s", e.what());
     } catch (...) {
-        LOG_ERROR(0, "MediaItem::Ctor failure by unexpected failure");
+        LOG_ERROR(MEDIA_INDEXER_MEDIAITEM, 0, "MediaItem::Ctor failure by unexpected failure");
     }
 }
 
@@ -468,7 +468,7 @@ bool MediaItem::putExtraMetaToJson(pbnjson::JValue &meta)
             ||(type_ == MediaItem::Type::Video && (isVideoMeta(_meta) || isAudioMeta(_meta)))
             ||(type_ == MediaItem::Type::Image && isImageMeta(_meta))) {
             if (!putProperties(metaStr, data, meta)) {
-                LOG_ERROR(0, "Failed to meta data to json object, type : %s", metaStr.c_str());
+                LOG_ERROR(MEDIA_INDEXER_MEDIAITEM, 0, "Failed to meta data to json object, type : %s", metaStr.c_str());
                 return false;
             }
         }
@@ -527,27 +527,27 @@ void MediaItem::setMeta(Meta meta, MetaData value)
     case 0:
         // valgrind complains about 'std::int64_t' here, for clean
         // valgrind output we need to set 'long'
-        LOG_DEBUG("Setting '%s' on '%s' to '%" PRIu64 "'", metaToString(meta).c_str(),
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "Setting '%s' on '%s' to '%" PRIu64 "'", metaToString(meta).c_str(),
             uri_.c_str(), std::get<std::int64_t>(value));
         break;
     case 1:
-        LOG_DEBUG("Setting '%s' on '%s' to '%f'", metaToString(meta).c_str(),
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "Setting '%s' on '%s' to '%f'", metaToString(meta).c_str(),
             uri_.c_str(), std::get<double>(value));
         break;
     case 2:
-        LOG_DEBUG("Setting '%s' on '%s' to '%d'", metaToString(meta).c_str(),
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "Setting '%s' on '%s' to '%d'", metaToString(meta).c_str(),
             uri_.c_str(), std::get<std::int32_t>(value));
         break;
     case 3:
-        LOG_DEBUG("Setting '%s' on '%s' to '%s'", metaToString(meta).c_str(),
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "Setting '%s' on '%s' to '%s'", metaToString(meta).c_str(),
             uri_.c_str(), std::get<std::string>(value).c_str());
         break;
     case 4:
-        LOG_DEBUG("Setting '%s' on '%s' to '%d'", metaToString(meta).c_str(),
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "Setting '%s' on '%s' to '%d'", metaToString(meta).c_str(),
             uri_.c_str(), std::get<std::uint32_t>(value));
         break;
     default:
-        LOG_DEBUG("Invalid index for setting meta '%s'", uri_.c_str());
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAITEM, "Invalid index for setting meta '%s'", uri_.c_str());
         break;
     }
 

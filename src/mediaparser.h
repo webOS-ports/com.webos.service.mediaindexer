@@ -57,9 +57,6 @@ class MediaParser
     virtual ~MediaParser();
 
  private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Start new task, must be called with lock locked.
     static void runTask();
 

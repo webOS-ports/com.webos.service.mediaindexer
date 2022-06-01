@@ -59,9 +59,6 @@ public:
     virtual bool handleLunaResponseMetaData(LSMessage *msg);
 
 protected:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Singleton.
     DeviceDb();
 

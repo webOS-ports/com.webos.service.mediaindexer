@@ -58,9 +58,6 @@ public:
     std::optional<std::string> getPlaybackUri(const std::string &uri);
 
 private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Singleton object.
     static std::shared_ptr<Plugin> instance_;
     /// Type of UPnP devices we are looking for.

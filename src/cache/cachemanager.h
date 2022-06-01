@@ -40,9 +40,6 @@ public:
     void printAllCache() const;
 
  private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Singleton
     CacheManager(std::string confPath);
 

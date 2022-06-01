@@ -43,19 +43,19 @@ void Configurator::init()
     // get the JDOM tree from configuration file
     auto root = pbnjson::JDomParser::fromFile(confPath_.c_str());
     if (!root.isObject()) {
-        LOG_ERROR(0, "configuration file parsing error! need to check %s", confPath_.c_str());
+        LOG_ERROR(MEDIA_INDEXER_CONFIGURATOR, 0, "configuration file parsing error! need to check %s", confPath_.c_str());
         return;
     }
 
     // check force-sw-decoders field
     if (!root.hasKey("force-sw-decoders"))
-        LOG_WARNING(0, "Can't find force-sw-decoders property. use H/W decoder instead by default!");
+        LOG_WARNING(MEDIA_INDEXER_CONFIGURATOR, 0, "Can't find force-sw-decoders property. use H/W decoder instead by default!");
     else
         force_sw_decoders_ = root["force-sw-decoders"].asBool();
 
     // check supportedMediaExtension field
     if (!root.hasKey("supportedMediaExtension")) {
-        LOG_WARNING(0, "Can't find supportedMediaExtension field. need to check it!");
+        LOG_WARNING(MEDIA_INDEXER_CONFIGURATOR, 0, "Can't find supportedMediaExtension field. need to check it!");
         return;
     }
 
@@ -121,7 +121,7 @@ MediaItemTypeInfo Configurator::getTypeInfo(const std::string& ext) const
     if (ret != extensions_.end()) {
         return ret->second;
     } else {
-        LOG_ERROR(0, "Didn't found proper type of extension %s and %s", ext.c_str(), lower.c_str());
+        LOG_ERROR(MEDIA_INDEXER_CONFIGURATOR, 0, "Didn't found proper type of extension %s and %s", ext.c_str(), lower.c_str());
         return std::make_pair(MediaItem::Type::EOL, MediaItem::ExtractorType::EOL);
     }
 }
@@ -156,10 +156,10 @@ bool Configurator::removeExtension(const std::string& ext)
 
 void Configurator::printSupportedExtension() const
 {
-    LOG_DEBUG("--------------Supported extensions--------------");
+    LOG_DEBUG(MEDIA_INDEXER_CONFIGURATOR, "--------------Supported extensions--------------");
     for (const auto &ext : extensions_)
-        LOG_DEBUG("%s", ext.first.c_str());
-    LOG_DEBUG("------------------------------------------------");
+        LOG_DEBUG(MEDIA_INDEXER_CONFIGURATOR, "%s", ext.first.c_str());
+    LOG_DEBUG(MEDIA_INDEXER_CONFIGURATOR, "------------------------------------------------");
 }
 
 std::string Configurator::toLower(const std::string & ext) const

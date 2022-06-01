@@ -57,9 +57,6 @@ class TaglibExtractor : public IMetaDataExtractor
     bool extractMeta(MediaItem &mediaItem, bool extra = false) const;
 
  private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Get text frame from id3 tag key value
     std::string getTextFrame(TagLib::ID3v2::Tag *tag,      const TagLib::ByteVector &flag) const;
 

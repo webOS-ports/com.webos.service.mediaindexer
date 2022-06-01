@@ -37,7 +37,7 @@ DbConnector::DbConnector(const char *serviceName, bool async) :
     connector_ = std::unique_ptr<LunaConnector>(new LunaConnector(serviceName_, async));
 
     if (!connector_)
-        LOG_ERROR(0, "Failed to create lunaconnector object");
+        LOG_ERROR(MEDIA_INDEXER_DBCONNECTOR, 0, "Failed to create lunaconnector object");
 
     connector_->registerTokenCallback(
         [this](LSMessageToken & token, const std::string &dbServiceMethod,
@@ -49,7 +49,7 @@ DbConnector::DbConnector(const char *serviceName, bool async) :
     connector_->registerTokenCancelCallback(
         [this](LSMessageToken & token, void *obj) -> void {
             if (!sessionDataFromToken(token, static_cast<SessionData*>(obj), HDL_LUNA_CONN)) {
-                LOG_ERROR(0, "Failed in sessionDataFromToken for token %ld", (long)token);
+                LOG_ERROR(MEDIA_INDEXER_DBCONNECTOR, 0, "Failed in sessionDataFromToken for token %ld", (long)token);
             }
         });
 }
@@ -84,16 +84,16 @@ void DbConnector::ensureKind(const std::string &kind_name)
     kind.put("indexes", kindIndexes_);
     kind.put("owner", serviceName_.c_str());
 
-    LOG_INFO(0, "Ensure kind '%s' or '%s'", kind_name.c_str(), kindId_.c_str());
+    LOG_INFO(MEDIA_INDEXER_DBCONNECTOR, 0, "Ensure kind '%s' or '%s'", kind_name.c_str(), kindId_.c_str());
 /*
     if (!LSCall(lsHandle_, url.c_str(), kind.stringify().c_str(),
                 DbConnector::onLunaResponse2, this, &sessionToken, &lsError)) {
-        LOG_ERROR(0, "db service putKind error");
+        LOG_ERROR(MEDIA_INDEXER_DBCONNECTOR, 0, "db service putKind error");
     }
 */
     if (!connector_->sendMessage(url.c_str(), kind.stringify().c_str(),
             DbConnector::onLunaResponse, this, true, &sessionToken)) {
-        LOG_ERROR(0, "Db service putKind error");
+        LOG_ERROR(MEDIA_INDEXER_DBCONNECTOR, 0, "Db service putKind error");
     }
 }
 
@@ -130,11 +130,11 @@ bool DbConnector::mergePut(const std::string &uri, bool precise,
     request.put("props", props);
     request.put("query", query);
 
-    LOG_INFO(0, "Send mergePut for '%s', request : '%s'", uri.c_str(), request.stringify().c_str());
+    LOG_INFO(MEDIA_INDEXER_DBCONNECTOR, 0, "Send mergePut for '%s', request : '%s'", uri.c_str(), request.stringify().c_str());
 
     if (!connector_->sendMessage(url.c_str(), request.stringify().c_str(),
             DbConnector::onLunaResponse, this, async, &sessionToken, obj)) {
-        LOG_ERROR(0, "Db service mergePut error");
+        LOG_ERROR(MEDIA_INDEXER_DBCONNECTOR, 0, "Db service mergePut error");
         return false;
     }
 
@@ -168,11 +168,11 @@ bool DbConnector::merge(const std::string &kind_name, pbnjson::JValue &props,
     request.put("props", props);
     request.put("query", query);
 
-    LOG_INFO(0, "Send merges for '%s', request : '%s'", whereVal.c_str(), request.stringify().c_str());
+    LOG_INFO(MEDIA_INDEXER_DBCONNECTOR, 0, "Send merges for '%s', request : '%s'", whereVal.c_str(), request.stringify().c_str());
 
     if (!connector_->sendMessage(url.c_str(), request.stringify().c_str(),
             DbConnector::onLunaResponse, this, async, &sessionToken, obj, method)) {
-        LOG_ERROR(0, "Db service mergePut error");
+        LOG_ERROR(MEDIA_INDEXER_DBCONNECTOR, 0, "Db service mergePut error");
         return false;
     }
 
@@ -189,11 +189,11 @@ bool DbConnector::put(pbnjson::JValue &props, void *obj, bool atomic, std::strin
     auto request = pbnjson::Object();//props;
     request.put("objects", props);
 
-    //LOG_DEBUG("Send put for '%s', request : '%s'", uri.c_str(), request.stringify().c_str());
+    //LOG_DEBUG(MEDIA_INDEXER_DBCONNECTOR, "Send put for '%s', request : '%s'", uri.c_str(), request.stringify().c_str());
 
     if (!connector_->sendMessage(url.c_str(), request.stringify().c_str(),
             DbConnector::onLunaResponse, this, async, &sessionToken, obj, method)) {
-        LOG_ERROR(0, "Db service put error");
+        LOG_ERROR(MEDIA_INDEXER_DBCONNECTOR, 0, "Db service put error");
         return false;
     }
 
@@ -227,11 +227,11 @@ bool DbConnector::find(const std::string &uri, bool precise,
     auto request = pbnjson::Object();
     request.put("query", query);
 
-    LOG_INFO(0, "Send find for '%s'", uri.c_str());
+    LOG_INFO(MEDIA_INDEXER_DBCONNECTOR, 0, "Send find for '%s'", uri.c_str());
 
     if (!connector_->sendMessage(url.c_str(), request.stringify().c_str(),
             DbConnector::onLunaResponse, this, async, &sessionToken, obj)) {
-        LOG_ERROR(0, "Db service find error");
+        LOG_ERROR(MEDIA_INDEXER_DBCONNECTOR, 0, "Db service find error");
         return false;
     }
 
@@ -249,11 +249,11 @@ bool DbConnector::batch(pbnjson::JValue &operations, const std::string &dbMethod
     auto request = pbnjson::Object();
     request.put("operations", operations);
 
-    LOG_INFO(0, "Send batch for '%s'", dbMethod.c_str());
+    LOG_INFO(MEDIA_INDEXER_DBCONNECTOR, 0, "Send batch for '%s'", dbMethod.c_str());
 
     if (!connector_->sendMessage(url.c_str(), request.stringify().c_str(),
             DbConnector::onLunaResponse, this, async, &sessionToken, obj, dbMethod)) {
-        LOG_ERROR(0, "Db service batch error");
+        LOG_ERROR(MEDIA_INDEXER_DBCONNECTOR, 0, "Db service batch error");
         return false;
     }
 
@@ -275,7 +275,7 @@ bool DbConnector::search(pbnjson::JValue &query, const std::string &dbMethod, vo
 
     if (!LSCall(lsHandle_, url.c_str(), request.stringify().c_str(),
                 DbConnector::onLunaResponseMetaData, this, &sessionToken, &lsError)) {
-        LOG_ERROR(0, "Db service search error");
+        LOG_ERROR(MEDIA_INDEXER_DBCONNECTOR, 0, "Db service search error");
         LSErrorPrint(&lsError, stderr);
         LSErrorFree(&lsError);
         return false;
@@ -299,7 +299,7 @@ bool DbConnector::del(pbnjson::JValue &query, const std::string &dbMethod, void 
     request.put("query", query);
     if (!LSCall(lsHandle_, url.c_str(), request.stringify().c_str(),
                 DbConnector::onLunaResponseMetaData, this, &sessionToken, &lsError)) {
-        LOG_ERROR(0, "Db service del error");
+        LOG_ERROR(MEDIA_INDEXER_DBCONNECTOR, 0, "Db service del error");
         LSErrorPrint(&lsError, stderr);
         LSErrorFree(&lsError);
         return false;
@@ -313,7 +313,7 @@ bool DbConnector::del(pbnjson::JValue &query, const std::string &dbMethod, void 
 bool DbConnector::roAccess(std::list<std::string> &services)
 {
     if (!lsHandle_) {
-        LOG_CRITICAL(0, "Luna bus handle not set");
+        LOG_CRITICAL(MEDIA_INDEXER_DBCONNECTOR, 0, "Luna bus handle not set");
         return false;
     }
 
@@ -340,12 +340,12 @@ bool DbConnector::roAccess(std::list<std::string> &services)
     auto request = pbnjson::Object();
     request.put("permissions", permissions);
 
-    LOG_INFO(0, "Send putPermissions");
-    LOG_DEBUG("Request : %s", request.stringify().c_str());
+    LOG_INFO(MEDIA_INDEXER_DBCONNECTOR, 0, "Send putPermissions");
+    LOG_DEBUG(MEDIA_INDEXER_DBCONNECTOR, "Request : %s", request.stringify().c_str());
 
     if (!connector_->sendMessage(url.c_str(), request.stringify().c_str(),
             DbConnector::onLunaResponse, this, true, &sessionToken)) {
-        LOG_ERROR(0, "Db service permissions error");
+        LOG_ERROR(MEDIA_INDEXER_DBCONNECTOR, 0, "Db service permissions error");
         return false;
     }
 
@@ -356,7 +356,7 @@ bool DbConnector::roAccess(std::list<std::string> &services, std::list<std::stri
                                 void *obj, bool atomic, const std::string &forcemethod)
 {
     if (!lsHandle_) {
-        LOG_CRITICAL(0, "Luna bus handle not set");
+        LOG_CRITICAL(MEDIA_INDEXER_DBCONNECTOR, 0, "Luna bus handle not set");
         return false;
     }
 
@@ -387,12 +387,12 @@ bool DbConnector::roAccess(std::list<std::string> &services, std::list<std::stri
     auto request = pbnjson::Object();
     request.put("permissions", permissions);
 
-    LOG_INFO(0, "Send putPermissions");
-    LOG_DEBUG("Request : %s", request.stringify().c_str());
+    LOG_INFO(MEDIA_INDEXER_DBCONNECTOR, 0, "Send putPermissions");
+    LOG_DEBUG(MEDIA_INDEXER_DBCONNECTOR, "Request : %s", request.stringify().c_str());
 
     if (!connector_->sendMessage(url.c_str(), request.stringify().c_str(),
             DbConnector::onLunaResponse, this, async, &sessionToken, obj, forcemethod)) {
-        LOG_ERROR(0, "Db service permissions error");
+        LOG_ERROR(MEDIA_INDEXER_DBCONNECTOR, 0, "Db service permissions error");
         return false;
     }
 
@@ -428,7 +428,7 @@ bool DbConnector::sessionDataFromToken(LSMessageToken token, SessionData *sd,
     if (sd)
         *sd = match->second;
     else {
-        LOG_ERROR(0, "Invalid SessionData");
+        LOG_ERROR(MEDIA_INDEXER_DBCONNECTOR, 0, "Invalid SessionData");
         return false;
     }
     messageMap_[hdlType].erase(match);
@@ -438,7 +438,7 @@ bool DbConnector::sessionDataFromToken(LSMessageToken token, SessionData *sd,
 bool DbConnector::onLunaResponse(LSHandle *lsHandle, LSMessage *msg, void *ctx)
 {
     DbConnector *connector = static_cast<DbConnector *>(ctx);
-    LOG_DEBUG("onLunaResponse");
+    LOG_DEBUG(MEDIA_INDEXER_DBCONNECTOR, "onLunaResponse");
     return connector->handleLunaResponse(msg);
 }
 
@@ -458,7 +458,7 @@ void DbConnector::rememberSessionData(LSMessageToken token,
     // remember token for response - we could do that after the
     // request has been issued because the response will happen
     // from the mainloop in the same thread context
-    LOG_DEBUG("Save dbServiceMethod %s, dbMethod %s, token %ld pair", dbServiceMethod.c_str(), dbMethod.c_str(), (long)token);
+    LOG_DEBUG(MEDIA_INDEXER_DBCONNECTOR, "Save dbServiceMethod %s, dbMethod %s, token %ld pair", dbServiceMethod.c_str(), dbMethod.c_str(), (long)token);
     SessionData sd = {dbServiceMethod, dbMethod, query, object};
     auto p = std::make_pair(token, sd);
     std::lock_guard<std::mutex> lock(lock_);

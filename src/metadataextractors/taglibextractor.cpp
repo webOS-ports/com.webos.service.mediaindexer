@@ -52,7 +52,7 @@ std::string TaglibExtractor::getTextFrame(TagLib::ID3v2::Tag *tag,  const TagLib
 {
     std::string ret;
     if (!tag) {
-        LOG_WARNING(0, "tag is empty");
+        LOG_WARNING(MEDIA_INDEXER_TAGLIBEXTRACTOR, 0, "tag is empty");
         return "";
     }
     if (!tag->frameListMap()[flag].isEmpty())
@@ -84,22 +84,22 @@ std::string TaglibExtractor::saveAttachedImage(MediaItem &mediaItem, TagLib::ID3
         auto device = mediaItem.device();
         if (device.get()) {
             if (!device->createThumbnailDirectory()) {
-                LOG_ERROR(0, "Failed to create Thumbnail directory for UUID %s", mediaItem.uuid().c_str());
+                LOG_ERROR(MEDIA_INDEXER_TAGLIBEXTRACTOR, 0, "Failed to create Thumbnail directory for UUID %s", mediaItem.uuid().c_str());
             }
         } else {
-            LOG_ERROR(0, "Invalid device for creating thumbnail directory for UUID %s", mediaItem.uuid().c_str());
+            LOG_ERROR(MEDIA_INDEXER_TAGLIBEXTRACTOR, 0, "Invalid device for creating thumbnail directory for UUID %s", mediaItem.uuid().c_str());
         }
 
         std::string thumbnailName = fname + "." + ext;
         of = TAGLIB_BASE_DIRECTORY + mediaItem.uuid() + "/" + thumbnailName;
         mediaItem.setThumbnailFileName(thumbnailName);
 
-        LOG_DEBUG("Save Attached Image, fullpath : %s",of.c_str());
+        LOG_DEBUG(MEDIA_INDEXER_TAGLIBEXTRACTOR, "Save Attached Image, fullpath : %s",of.c_str());
         std::ofstream ofs(of, ios_base::out | ios_base::binary);
         ofs.write(frame->picture().data(), frame->picture().size());
         if (ofs.fail())
         {
-            LOG_ERROR(0, "Failed to write attached image %s to device", of.c_str());
+            LOG_ERROR(MEDIA_INDEXER_TAGLIBEXTRACTOR, 0, "Failed to write attached image %s to device", of.c_str());
             return std::string();
         }
         ofs.flush();
@@ -114,11 +114,11 @@ bool TaglibExtractor::extractMeta(MediaItem &mediaItem, bool extra) const
     std::string uri(mediaItem.path());
 
     if (mediaItem.type() != MediaItem::Type::Audio) {
-        LOG_ERROR(0, "mediaitem type is not audio");
+        LOG_ERROR(MEDIA_INDEXER_TAGLIBEXTRACTOR, 0, "mediaitem type is not audio");
         return false;
     }
 
-    LOG_DEBUG("Extract meta data from '%s' (%s) with TagLib",
+    LOG_DEBUG(MEDIA_INDEXER_TAGLIBEXTRACTOR, "Extract meta data from '%s' (%s) with TagLib",
         uri.c_str(), MediaItem::mediaTypeToString(mediaItem.type()).c_str());
 
     setMetaCommon(mediaItem);
@@ -126,32 +126,32 @@ bool TaglibExtractor::extractMeta(MediaItem &mediaItem, bool extra) const
     {
         TagLib::MPEG::File f(uri.c_str());
         ID3v2::Tag *tag = f.ID3v2Tag();
-        LOG_DEBUG("Setting Meta data for Mp3");
+        LOG_DEBUG(MEDIA_INDEXER_TAGLIBEXTRACTOR, "Setting Meta data for Mp3");
         setMetaFromFile(mediaItem, &f, Mp3, extra);
         if (!tag || tag->isEmpty())
         {
-            LOG_DEBUG("tag for %s is empty", uri.c_str());
+            LOG_DEBUG(MEDIA_INDEXER_TAGLIBEXTRACTOR, "tag for %s is empty", uri.c_str());
             return true;
         }
         setMetaFromTag(mediaItem, tag, Mp3, extra);
-        LOG_DEBUG("Setting Meta data for Mp3 Done");
+        LOG_DEBUG(MEDIA_INDEXER_TAGLIBEXTRACTOR, "Setting Meta data for Mp3 Done");
     }
     else if (uri.rfind(EXT_OGG) != std::string::npos)
     {
         TagLib::Vorbis::File oggf(uri.c_str());
         Ogg::XiphComment *tag = oggf.tag();
-        LOG_DEBUG("Setting Meta data for Ogg");
+        LOG_DEBUG(MEDIA_INDEXER_TAGLIBEXTRACTOR, "Setting Meta data for Ogg");
         setMetaFromFile(mediaItem, &oggf, Ogg, extra);
         if (!tag || tag->isEmpty()) {
-            LOG_DEBUG("tag for %s is empty", uri.c_str());
+            LOG_DEBUG(MEDIA_INDEXER_TAGLIBEXTRACTOR, "tag for %s is empty", uri.c_str());
             return true;
         }
         setMetaFromTag(mediaItem, tag, Ogg, extra);
-        LOG_DEBUG("Setting Meta data for Ogg Done");
+        LOG_DEBUG(MEDIA_INDEXER_TAGLIBEXTRACTOR, "Setting Meta data for Ogg Done");
     }
     else
     {
-        LOG_ERROR(0, "invalid file, file extension is not .mp3");
+        LOG_ERROR(MEDIA_INDEXER_TAGLIBEXTRACTOR, 0, "invalid file, file extension is not .mp3");
         return false;
     }
     return true;
@@ -277,11 +277,11 @@ void TaglibExtractor::setMetaMp3(MediaItem &mediaItem, TagLib::ID3v2::Tag *tag,
                     std::string outImagePath = saveAttachedImage(mediaItem, tag, baseName);
                     if (outImagePath.empty())
                     {
-                        LOG_ERROR(0, "Extracting Image from %s is failed", baseName.c_str());
+                        LOG_ERROR(MEDIA_INDEXER_TAGLIBEXTRACTOR, 0, "Extracting Image from %s is failed", baseName.c_str());
                     }
                     else
                     {
-                        LOG_DEBUG("Extracted Image has been saved in %s", outImagePath.c_str());
+                        LOG_DEBUG(MEDIA_INDEXER_TAGLIBEXTRACTOR, "Extracted Image has been saved in %s", outImagePath.c_str());
                         data = {outImagePath};
                     }
                 }
@@ -315,7 +315,7 @@ void TaglibExtractor::setMetaMp3(MediaItem &mediaItem, TagLib::ID3v2::Tag *tag,
         }
     }
 
-    LOG_DEBUG("Found tag for '%s'", MediaItem::metaToString(flag).c_str());
+    LOG_DEBUG(MEDIA_INDEXER_TAGLIBEXTRACTOR, "Found tag for '%s'", MediaItem::metaToString(flag).c_str());
     mediaItem.setMeta(flag, data);
 }
 
@@ -392,7 +392,7 @@ void TaglibExtractor::setMetaOgg(MediaItem &mediaItem, TagLib::Ogg::XiphComment 
         }
     }
 
-    LOG_DEBUG("Found tag for '%s'", MediaItem::metaToString(flag).c_str());
+    LOG_DEBUG(MEDIA_INDEXER_TAGLIBEXTRACTOR, "Found tag for '%s'", MediaItem::metaToString(flag).c_str());
     mediaItem.setMeta(flag, data);
 }
 

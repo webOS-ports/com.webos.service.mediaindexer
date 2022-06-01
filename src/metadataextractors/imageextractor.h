@@ -53,9 +53,6 @@ class ImageExtractor : public IMetaDataExtractor
     bool extractMeta(MediaItem &mediaItem, bool extra = false) const;
 
  private:
-    /// Get message id.
-    LOG_MSGID;
-
     bool getExifData(MediaItem &mediaItem) const;
 
     void resetExifData() const;

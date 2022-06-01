@@ -38,9 +38,6 @@ public:
     virtual ~Storage();
 
 private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Storage device definition structure.
     struct StorageDevice {
         /// Local path to storage.

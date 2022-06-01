@@ -45,7 +45,6 @@ public:
     std::string requestMediaScan(const std::string& path) const;
 
 private:
-    LOG_MSGID
     std::string getKindID(const std::string &uri) const;
     std::string typeFromMime(const std::string &mime) const;
 

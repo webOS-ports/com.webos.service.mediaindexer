@@ -28,12 +28,12 @@ CacheManager *CacheManager::instance()
 CacheManager::CacheManager()
 {
     // nothing to be done here
-    LOG_DEBUG("CacheManager ctor!");
+    LOG_DEBUG(MEDIA_INDEXER_CACHEMANAGER, "CacheManager ctor!");
 }
 
 CacheManager::~CacheManager()
 {
-    LOG_DEBUG("CacheManager dtor!");
+    LOG_DEBUG(MEDIA_INDEXER_CACHEMANAGER, "CacheManager dtor!");
     for (auto &cache : caches_)
         cache.second.reset();
     caches_.clear();
@@ -83,7 +83,7 @@ std::shared_ptr<Cache> CacheManager::readCache(const std::string& devUri, const 
     auto cache = std::make_shared<Cache>(cachePath);
     bool ret = cache->readCache();
     if (!ret) {
-        LOG_WARNING(0, "Failed to read cache file!");
+        LOG_WARNING(MEDIA_INDEXER_CACHEMANAGER, 0, "Failed to read cache file!");
         return nullptr;
     }
     caches_.emplace(devUri, cache);
@@ -119,10 +119,10 @@ void CacheManager::createCacheDirectory(const std::string& uuid)
     std::string cacheDir = CACHE_DIRECTORY + uuid;
     if (!std::filesystem::is_directory(cacheDir)) {
         if (!std::filesystem::create_directory(cacheDir, err)) {
-            LOG_ERROR(0, "Failed to create directory %s, error : %s",cacheDir.c_str(), err.message().c_str());
-            LOG_DEBUG("Retry with create_directories");
+            LOG_ERROR(MEDIA_INDEXER_CACHEMANAGER, 0, "Failed to create directory %s, error : %s",cacheDir.c_str(), err.message().c_str());
+            LOG_DEBUG(MEDIA_INDEXER_CACHEMANAGER, "Retry with create_directories");
             if (!std::filesystem::create_directories(cacheDir, err)) {
-                LOG_ERROR(0, "Retry Failed, error : %s", err.message().c_str());
+                LOG_ERROR(MEDIA_INDEXER_CACHEMANAGER, 0, "Retry Failed, error : %s", err.message().c_str());
             }
         }
     }
@@ -130,11 +130,11 @@ void CacheManager::createCacheDirectory(const std::string& uuid)
 
 void CacheManager::printAllCache() const
 {
-    LOG_DEBUG("--------------<Caches>--------------");
+    LOG_DEBUG(MEDIA_INDEXER_CACHEMANAGER, "--------------<Caches>--------------");
     for (const auto &cache : caches_) {
-        LOG_DEBUG("<%s>", cache.first.c_str());
+        LOG_DEBUG(MEDIA_INDEXER_CACHEMANAGER, "<%s>", cache.first.c_str());
         auto pCache = cache.second.get();
         pCache->printCache();
     }
-    LOG_DEBUG("------------------------------------");
+    LOG_DEBUG(MEDIA_INDEXER_CACHEMANAGER, "------------------------------------");
 }

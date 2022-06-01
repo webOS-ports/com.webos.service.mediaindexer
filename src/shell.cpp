@@ -54,7 +54,7 @@ void Shell::run(int  argc, char *argv[])
            result = history_expand(s, &expansion);
 
            if (result < 0 || result == 2) {
-               LOG_ERROR(0, "editline: %s", expansion);
+               LOG_ERROR(MEDIA_INDEXER_MEDIAINDEXER, 0, "editline: %s", expansion);
            } else {
                add_history(expansion);
                stop = executeLine(expansion);

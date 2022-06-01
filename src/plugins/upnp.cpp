@@ -43,7 +43,7 @@ Upnp::Upnp() : Plugin(Upnp::uri)
     upnpHandle_ = -1;
     auto err = UpnpInit2(NULL, 0);
     if (err)
-        LOG_CRITICAL(0, "UpnpInit2() failed (%i)", err);
+        LOG_CRITICAL(MEDIA_INDEXER_UPNP, 0, "UpnpInit2() failed (%i)", err);
 }
 
 Upnp::~Upnp()
@@ -52,7 +52,7 @@ Upnp::~Upnp()
     runDeviceDetection(false);
     auto err = UpnpFinish();
     if (err)
-        LOG_ERROR(0, "UpnpFinish() failed (%i)", err);
+        LOG_ERROR(MEDIA_INDEXER_UPNP, 0, "UpnpFinish() failed (%i)", err);
 }
 
 UpnpClient_Handle Upnp::upnpHandle(void) const
@@ -67,20 +67,20 @@ void Upnp::scan(const std::string &uri)
     if (!dev)
         return;
 
-    LOG_INFO(0, "Start item-tree-walk on device '%s'", dev->uri().c_str());
+    LOG_INFO(MEDIA_INDEXER_UPNP, 0, "Start item-tree-walk on device '%s'", dev->uri().c_str());
 
     // all browsing happens synchronously so this thread will stay
     // alive until either browsing is done or an error occurs
     sendBrowseRequest("0", 0, dev);
 
-    LOG_INFO(0, "Item-tree-walk on device '%s' has been completed",
+    LOG_INFO(MEDIA_INDEXER_UPNP, 0, "Item-tree-walk on device '%s' has been completed",
         dev->uri().c_str());
 }
 
 void Upnp::extractMeta(MediaItem &mediaItem, bool expand)
 {
     auto path = mediaItem.path();
-    LOG_INFO(0, "Request meta data for item '%s'", path.c_str());
+    LOG_INFO(MEDIA_INDEXER_UPNP, 0, "Request meta data for item '%s'", path.c_str());
     sendMetaRequest(path, mediaItem);
 }
 
@@ -108,7 +108,7 @@ std::optional<std::string> Upnp::getPlaybackUri(const std::string &uri)
 
     ixmlDocument_free(didl);
 
-    LOG_DEBUG("Playback uri for '%s' is '%s'", uri.c_str(), pbUri.c_str());
+    LOG_DEBUG(MEDIA_INDEXER_UPNP, "Playback uri for '%s' is '%s'", uri.c_str(), pbUri.c_str());
     return pbUri;
 }
 
@@ -123,24 +123,24 @@ int Upnp::eventCallback(Upnp_EventType eventType, const void *event,
     case UPNP_CONTROL_ACTION_COMPLETE:
         [[fallthrough]]
     case UPNP_CONTROL_GET_VAR_COMPLETE:
-        LOG_DEBUG("UPnP control event, ignore");
+        LOG_DEBUG(MEDIA_INDEXER_UPNP, "UPnP control event, ignore");
         break;
     case UPNP_DISCOVERY_ADVERTISEMENT_ALIVE:
-        LOG_DEBUG("UPnP advertisement alive event");
+        LOG_DEBUG(MEDIA_INDEXER_UPNP, "UPnP advertisement alive event");
         static_cast<Upnp *>(cookie)->serviceFound(event);
         break;
     case UPNP_DISCOVERY_ADVERTISEMENT_BYEBYE:
-        LOG_DEBUG("UPnP advertisement byebye event");
+        LOG_DEBUG(MEDIA_INDEXER_UPNP, "UPnP advertisement byebye event");
         static_cast<Upnp *>(cookie)->serviceLost(event);
         break;
     case UPNP_DISCOVERY_SEARCH_RESULT:
-        LOG_DEBUG("UPnP advertisement search result event");
+        LOG_DEBUG(MEDIA_INDEXER_UPNP, "UPnP advertisement search result event");
         /// @todo To satisfy the hack for advertisement events we send
         /// void**.
         static_cast<Upnp *>(cookie)->serviceFound(&event);
         break;
     case UPNP_DISCOVERY_SEARCH_TIMEOUT: {
-        LOG_DEBUG("UPnP advertisement search timeout, respawn");
+        LOG_DEBUG(MEDIA_INDEXER_UPNP, "UPnP advertisement search timeout, respawn");
         auto plugin = static_cast<Upnp *>(cookie);
         plugin->checkDevices();
         UpnpSearchAsync(plugin->upnpHandle(), upnpSearchTimeout_,
@@ -148,28 +148,28 @@ int Upnp::eventCallback(Upnp_EventType eventType, const void *event,
         break;
     }
     case UPNP_EVENT_SUBSCRIPTION_REQUEST:
-        LOG_DEBUG("UPnP subscription request, ignore");
+        LOG_DEBUG(MEDIA_INDEXER_UPNP, "UPnP subscription request, ignore");
         break;
     case UPNP_EVENT_RECEIVED:
-        LOG_DEBUG("UPnP received received, ignore");
+        LOG_DEBUG(MEDIA_INDEXER_UPNP, "UPnP received received, ignore");
         break;
     case UPNP_EVENT_RENEWAL_COMPLETE:
-        LOG_DEBUG("UPnP renewal complete");
+        LOG_DEBUG(MEDIA_INDEXER_UPNP, "UPnP renewal complete");
         break;
     case UPNP_EVENT_SUBSCRIBE_COMPLETE:
-        LOG_DEBUG("UPnP subscribe complete");
+        LOG_DEBUG(MEDIA_INDEXER_UPNP, "UPnP subscribe complete");
         break;
     case UPNP_EVENT_UNSUBSCRIBE_COMPLETE:
-        LOG_DEBUG("UPnP unsubscribe complete");
+        LOG_DEBUG(MEDIA_INDEXER_UPNP, "UPnP unsubscribe complete");
         break;
     case UPNP_EVENT_AUTORENEWAL_FAILED:
-        LOG_DEBUG("UPnP auto-renewal complete");
+        LOG_DEBUG(MEDIA_INDEXER_UPNP, "UPnP auto-renewal complete");
         break;
     case UPNP_EVENT_SUBSCRIPTION_EXPIRED:
-        LOG_DEBUG("UPnP subscription expired");
+        LOG_DEBUG(MEDIA_INDEXER_UPNP, "UPnP subscription expired");
         break;
     default:  // unknown upnp event
-        LOG_ERROR(0, "Unknown UPnP event: %i", eventType);
+        LOG_ERROR(MEDIA_INDEXER_UPNP, 0, "Unknown UPnP event: %i", eventType);
     }
 
     return 0;
@@ -198,7 +198,7 @@ void Upnp::getDeviceMeta(Upnp *plugin, std::string uri, std::string location)
     std::string meta;
     const DOMString t;
 
-    LOG_DEBUG("Get meta data from: '%s'", location.c_str());
+    LOG_DEBUG(MEDIA_INDEXER_UPNP, "Get meta data from: '%s'", location.c_str());
 
     UpnpDownloadXmlDoc(location.c_str(), &descDoc);
     if (!descDoc)
@@ -256,14 +256,14 @@ int Upnp::runDeviceDetection(bool start)
         auto err = UpnpRegisterClient(Upnp::eventCallback,
             static_cast<void *>(this), &upnpHandle_);
         if (err)
-            LOG_ERROR(0, "UpnpRegisterClient() failed (%i)", err);
+            LOG_ERROR(MEDIA_INDEXER_UPNP, 0, "UpnpRegisterClient() failed (%i)", err);
 
         UpnpSearchAsync(upnpHandle_, upnpSearchTimeout_,
             upnpDeviceCategory_, static_cast<void *>(this));
     } else {
         auto err = UpnpUnRegisterClient(upnpHandle_);
         if (err)
-            LOG_ERROR(0, "UpnpUnRegisterClient() failed (%i)", err);
+            LOG_ERROR(MEDIA_INDEXER_UPNP, 0, "UpnpUnRegisterClient() failed (%i)", err);
     }
     return 0;
 }
@@ -276,14 +276,14 @@ void Upnp::serviceFound(const void *event)
     const UpnpString *location = UpnpDiscovery_get_Location(discovery);
     std::string uri = mangleUri(deviceId);
 
-    LOG_DEBUG("Device found, constructed uri: '%s'", uri.c_str());
+    LOG_DEBUG(MEDIA_INDEXER_UPNP, "Device found, constructed uri: '%s'", uri.c_str());
 
     {
         // check if device is blacklisted and shall be ignored
         std::lock_guard<std::mutex> lock(blacklistLock_);
         auto it = std::find(blacklist_.begin(), blacklist_.end(), uri);
         if (it != blacklist_.end()) {
-            LOG_DEBUG("Device '%s' blacklisted, ignore", uri.c_str());
+            LOG_DEBUG(MEDIA_INDEXER_UPNP, "Device '%s' blacklisted, ignore", uri.c_str());
             return;
         }
     }
@@ -316,7 +316,7 @@ void Upnp::serviceLost(const void *event)
     UpnpDiscovery *discovery = (UpnpDiscovery *) *((void **) event);
     const UpnpString *deviceId = UpnpDiscovery_get_DeviceID(discovery);
     std::string uri = mangleUri(deviceId);
-    LOG_DEBUG("Device said byebye, constructed uri: '%s'", uri.c_str());
+    LOG_DEBUG(MEDIA_INDEXER_UPNP, "Device said byebye, constructed uri: '%s'", uri.c_str());
     removeDevice(uri);
 }
 
@@ -459,11 +459,11 @@ bool Upnp::sendBrowseRequest(const std::string &id, int count,
         while (done < count) {
             auto c = browseChunk(id, done, 10, device);
             if (c < 0) {
-                LOG_ERROR(0, "Browse failed");
+                LOG_ERROR(MEDIA_INDEXER_UPNP, 0, "Browse failed");
                 break;
             }
             done += c;
-            LOG_DEBUG("Got %i, have %i, expecting %i", c, done, count);
+            LOG_DEBUG(MEDIA_INDEXER_UPNP, "Got %i, have %i, expecting %i", c, done, count);
         }
     }
 
@@ -496,7 +496,7 @@ int Upnp::browseChunk(const std::string &id, int start, int count,
         ixmlDocument_free(action);
 
         if (err != UPNP_E_SUCCESS || !resp) {
-            LOG_ERROR(0, "Failed to send action to '%s': %i",
+            LOG_ERROR(MEDIA_INDEXER_UPNP, 0, "Failed to send action to '%s': %i",
                 device->uri().c_str(), err);
             if (resp)
                 ixmlDocument_free(resp);
@@ -517,7 +517,7 @@ int Upnp::browseChunk(const std::string &id, int start, int count,
     // now get the DIDL text
     auto didl = getNodeText(resp, "Result");
     if (!didl) {
-        LOG_ERROR(0, "No browse DIDL result");
+        LOG_ERROR(MEDIA_INDEXER_UPNP, 0, "No browse DIDL result");
         ixmlDocument_free(resp);
         return -1;
     }
@@ -525,7 +525,7 @@ int Upnp::browseChunk(const std::string &id, int start, int count,
     ixmlRelaxParser(1);
     IXML_Document *didlDoc = ixmlParseBuffer(didl);
     if (!didlDoc) {
-        LOG_ERROR(0, "DIDL parsing failed: %s", didl);
+        LOG_ERROR(MEDIA_INDEXER_UPNP, 0, "DIDL parsing failed: %s", didl);
         ixmlDocument_free(resp);
         return -1;
     }
@@ -553,12 +553,12 @@ bool Upnp::parseBrowseResponse(IXML_Document *doc,
         // check if we want to follow this container type
         auto upnpClass = getNodeText(node, "upnp:class");
         if (!upnpClassCheck(upnpClass)) {
-            LOG_ERROR(0, "Ignore UPNP class %s", upnpClass);
+            LOG_ERROR(MEDIA_INDEXER_UPNP, 0, "Ignore UPNP class %s", upnpClass);
             return;
         }
-        LOG_WARNING(0, "Dive into UPNP class %s", upnpClass);
+        LOG_WARNING(MEDIA_INDEXER_UPNP, 0, "Dive into UPNP class %s", upnpClass);
         auto id = getAttributeText(node, "id");
-        LOG_DEBUG("Browse %i from %s", c, id);
+        LOG_DEBUG(MEDIA_INDEXER_UPNP, "Browse %i from %s", c, id);
         sendBrowseRequest(id, c, device);
         free(id);
     };
@@ -567,7 +567,7 @@ bool Upnp::parseBrowseResponse(IXML_Document *doc,
     // create media items for items
     auto handleItems = [this, &device](IXML_Node *node) {
         //auto s = ixmlNodetoString(node);
-        //LOG_DEBUG("Item node: '%s'", s);
+        //LOG_DEBUG(MEDIA_INDEXER_UPNP, "Item node: '%s'", s);
         auto id = getAttributeText(node, "id");
         if (!id)
             return;
@@ -812,7 +812,7 @@ IXML_Document *Upnp::getObjectMeta(const std::string &id,
         ixmlDocument_free(action);
 
         if (err != UPNP_E_SUCCESS || !resp) {
-            LOG_ERROR(0, "Failed to send action to '%s': %i",
+            LOG_ERROR(MEDIA_INDEXER_UPNP, 0, "Failed to send action to '%s': %i",
                 device->uri().c_str(), err);
             if (resp)
                 ixmlDocument_free(resp);
@@ -834,7 +834,7 @@ IXML_Document *Upnp::getObjectMeta(const std::string &id,
     // now get the DIDL text
     auto didl = getNodeText(resp, "Result");
     if (!didl) {
-        LOG_ERROR(0, "No browse DIDL result");
+        LOG_ERROR(MEDIA_INDEXER_UPNP, 0, "No browse DIDL result");
         ixmlDocument_free(resp);
         return nullptr;
     }
@@ -842,7 +842,7 @@ IXML_Document *Upnp::getObjectMeta(const std::string &id,
     ixmlRelaxParser(1);
     IXML_Document *didlDoc = ixmlParseBuffer(didl);
     if (!didlDoc) {
-        LOG_ERROR(0, "DIDL parsing failed: %s", didl);
+        LOG_ERROR(MEDIA_INDEXER_UPNP, 0, "DIDL parsing failed: %s", didl);
         ixmlDocument_free(resp);
         return nullptr;
     }

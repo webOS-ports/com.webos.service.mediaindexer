@@ -86,7 +86,7 @@ Device::Device(const std::string &uri, int alive, bool avail, std::string uuid) 
     observer_(nullptr)
 {
     lastSeen_ = std::chrono::system_clock::now();
-    LOG_DEBUG("Device Ctor, URI : %s UUID : %s, object : %p", uri_.c_str(), uuid_.c_str(), this);
+    LOG_DEBUG(MEDIA_INDEXER_DEVICE, "Device Ctor, URI : %s UUID : %s, object : %p", uri_.c_str(), uuid_.c_str(), this);
 }
 
 Device::~Device()
@@ -94,7 +94,7 @@ Device::~Device()
     // nothing to be done here, the only allocated object is the
     // scanner thread which runs in detached mode and thus does not
     // need any cleanup
-    LOG_DEBUG("Device Dtor, URI : %s UUID : %s OBJECT : %p", uri_.c_str(), uuid_.c_str(), this);
+    LOG_DEBUG(MEDIA_INDEXER_DEVICE, "Device Dtor, URI : %s UUID : %s OBJECT : %p", uri_.c_str(), uuid_.c_str(), this);
     exit_ = true;
     queue_.push_back("");
     cv_.notify_one();
@@ -106,7 +106,7 @@ Device::~Device()
 void Device::init()
 {
     if (!createThumbnailDirectory()) {
-        LOG_ERROR(0, "Failed to create corresponding thumbnail directory for device UUID %s", uuid_.c_str());
+        LOG_ERROR(MEDIA_INDEXER_DEVICE, 0, "Failed to create corresponding thumbnail directory for device UUID %s", uuid_.c_str());
     }
     task_ = std::thread(&Device::scanLoop, this);
     task_.detach();
@@ -114,7 +114,7 @@ void Device::init()
     auto cleanTaskFunc = [] (void *ctx, void *data) -> void {
         Device* dev = static_cast<Device *>(ctx);
         if (dev) {
-            LOG_DEBUG("Clean Up Task start for device '%s'", dev->uri().c_str());
+            LOG_DEBUG(MEDIA_INDEXER_DEVICE, "Clean Up Task start for device '%s'", dev->uri().c_str());
             auto obs = dev->observer();
             if (obs)
                 obs->cleanupDevice(dev);
@@ -210,7 +210,7 @@ bool Device::setMeta(Device::Meta type, const std::string value)
     if (meta_[type] == value)
         return false;
 
-    LOG_DEBUG("Updating meta %i to '%s' for '%s'", (int) type, value.c_str(),
+    LOG_DEBUG(MEDIA_INDEXER_DEVICE, "Updating meta %i to '%s' for '%s'", (int) type, value.c_str(),
         uri().c_str());
     meta_[type] = value;
 
@@ -244,15 +244,15 @@ void Device::scanLoop()
         std::string uri = static_cast<std::string>(queue_.front());
         if (uri.empty())
         {
-            LOG_ERROR(0, "Deque data is invalid!");
+            LOG_ERROR(MEDIA_INDEXER_DEVICE, 0, "Deque data is invalid!");
             continue;
         }
-        LOG_DEBUG("scanLoop start for uri : %s",uri_.c_str());
+        LOG_DEBUG(MEDIA_INDEXER_DEVICE, "scanLoop start for uri : %s",uri_.c_str());
         // let the plugin scan the device for media items
         auto plg = plugin();
         if (plg == nullptr)
         {
-            LOG_ERROR(0, "plugin for %s is not invalid",uri.c_str());
+            LOG_ERROR(MEDIA_INDEXER_DEVICE, 0, "plugin for %s is not invalid",uri.c_str());
             break;
         }
 #if PERFCHECK_ENABLE
@@ -280,7 +280,7 @@ bool Device::scan(IMediaItemObserver *observer)
     {
         std::shared_lock lock(lock_);
         if (!available_) {
-            LOG_ERROR(0, "Device '%s' is not available", uri().c_str());
+            LOG_ERROR(MEDIA_INDEXER_DEVICE, 0, "Device '%s' is not available", uri().c_str());
             return false;
         }
     }
@@ -291,7 +291,7 @@ bool Device::scan(IMediaItemObserver *observer)
         observer_ = observer;
     }
 
-    LOG_INFO(0, "Plugin will scan '%s' for us", uri_.c_str());
+    LOG_INFO(MEDIA_INDEXER_DEVICE, 0, "Plugin will scan '%s' for us", uri_.c_str());
 #if PERFCHECK_ENABLE
     PERF_START("TOTAL");
 #endif
@@ -425,7 +425,7 @@ bool Device::processingDone()
 {
     std::unique_lock<std::mutex> lock(pmtx_);
     if (state_ == Device::State::Parsing) {
-        LOG_INFO(0, "Item Count : %d, Proccessed Count : %d, Removed Count :%d", totalItemCount_, 
+        LOG_INFO(MEDIA_INDEXER_DEVICE, 0, "Item Count : %d, Proccessed Count : %d, Removed Count :%d", totalItemCount_, 
                 totalProcessedCount_, totalRemovedCount_);
         if ((totalItemCount_ == totalProcessedCount_) && (removeCount_ == totalRemovedCount_)) {
             setState(Device::State::Idle);
@@ -474,7 +474,7 @@ void Device::setState(Device::State state, bool force)
 {
     if (state == state_)
         return;
-    LOG_DEBUG("Device state change: %s -> %s",
+    LOG_DEBUG(MEDIA_INDEXER_DEVICE, "Device state change: %s -> %s",
         stateToString(state_).c_str(), stateToString(state).c_str());
     state_ = state;
 }
@@ -498,10 +498,10 @@ bool Device::createThumbnailDirectory()
     {
         if (!std::filesystem::create_directory(thumbnailDir, err))
         {
-            LOG_ERROR(0, "Failed to create directory %s, error : %s",thumbnailDir.c_str(), err.message().c_str());
-            LOG_DEBUG("Retry with create_directories");
+            LOG_ERROR(MEDIA_INDEXER_DEVICE, 0, "Failed to create directory %s, error : %s",thumbnailDir.c_str(), err.message().c_str());
+            LOG_DEBUG(MEDIA_INDEXER_DEVICE, "Retry with create_directories");
             if (!std::filesystem::create_directories(thumbnailDir, err)) {
-                LOG_ERROR(0, "Retry Failed, error : %s", err.message().c_str());
+                LOG_ERROR(MEDIA_INDEXER_DEVICE, 0, "Retry Failed, error : %s", err.message().c_str());
                 ret = false;
             }
         }
@@ -518,10 +518,10 @@ bool Device::createCacheDirectory()
     {
         if (!std::filesystem::create_directory(cacheDir, err))
         {
-            LOG_ERROR(0, "Failed to create directory %s, error : %s",cacheDir.c_str(), err.message().c_str());
-            LOG_DEBUG("Retry with create_directories");
+            LOG_ERROR(MEDIA_INDEXER_DEVICE, 0, "Failed to create directory %s, error : %s",cacheDir.c_str(), err.message().c_str());
+            LOG_DEBUG(MEDIA_INDEXER_DEVICE, "Retry with create_directories");
             if (!std::filesystem::create_directories(cacheDir, err)) {
-                LOG_ERROR(0, "Retry Failed, error : %s", err.message().c_str());
+                LOG_ERROR(MEDIA_INDEXER_DEVICE, 0, "Retry Failed, error : %s", err.message().c_str());
                 ret = false;
             }
         }

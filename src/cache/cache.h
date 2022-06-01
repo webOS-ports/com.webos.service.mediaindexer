@@ -48,9 +48,6 @@ public:
     const CacheMap& getRemainingCache() const;
 
  private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// cacheMap
     CacheMap cacheMap_;
 

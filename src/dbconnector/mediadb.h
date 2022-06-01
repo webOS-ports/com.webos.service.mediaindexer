@@ -211,9 +211,6 @@ public:
      */
     void requestDeleteItem(MediaItemPtr mediaitem);
 protected:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Singleton.
     MediaDb();
 

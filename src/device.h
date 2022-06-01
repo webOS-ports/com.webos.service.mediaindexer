@@ -337,9 +337,6 @@ public:
     void init();
 
 private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Uri mandatory for construction.
     Device(): state_(Device::State::Inactive), available_(false), alive_(0), maxAlive_(0), observer_(nullptr) {};
 

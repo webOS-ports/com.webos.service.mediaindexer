@@ -22,12 +22,12 @@
 Cache::Cache(const std::string& path)
     : cachePath_(path)
 {
-    LOG_DEBUG("Cache ctor! path : %s", cachePath_.c_str());
+    LOG_DEBUG(MEDIA_INDEXER_CACHE, "Cache ctor! path : %s", cachePath_.c_str());
 }
 
 Cache::~Cache()
 {
-    LOG_DEBUG("Cache dtor! path : %s", cachePath_.c_str());
+    LOG_DEBUG(MEDIA_INDEXER_CACHE, "Cache dtor! path : %s", cachePath_.c_str());
     cacheMap_.clear();
     cacheItems_.clear();
 }
@@ -51,7 +51,7 @@ const std::string& Cache::getPath() const
 bool Cache::setPath(const std::string& path)
 {
     if (path.empty()) {
-        LOG_WARNING(0, "given cache path is empty!");
+        LOG_WARNING(MEDIA_INDEXER_CACHE, 0, "given cache path is empty!");
         return false;
     }
 
@@ -67,7 +67,7 @@ bool Cache::generateCacheFile()
 
     std::ofstream outputFile(path);
     if (!outputFile.is_open()) {
-        LOG_ERROR(0, "cache file generation fail! need to check '%s'", path.c_str());
+        LOG_ERROR(MEDIA_INDEXER_CACHE, 0, "cache file generation fail! need to check '%s'", path.c_str());
         return false;
     }
 
@@ -102,13 +102,13 @@ bool Cache::readCache()
     // get the JDOM tree from given path
     auto root = pbnjson::JDomParser::fromFile(path.c_str());
     if (!root.isObject()) {
-        LOG_ERROR(0, "cache file parsing error! need to check '%s'", path.c_str());
+        LOG_ERROR(MEDIA_INDEXER_CACHE, 0, "cache file parsing error! need to check '%s'", path.c_str());
         return false;
     }
 
     if (!root.hasKey("uri") || !root.hasKey("hash") || 
         !root.hasKey("type") || !root.hasKey("thumbnail")) {
-        LOG_WARNING(0, "can't find 'uri' and 'hash' field!");
+        LOG_WARNING(MEDIA_INDEXER_CACHE, 0, "can't find 'uri' and 'hash' field!");
         return false;
     }
 
@@ -122,7 +122,7 @@ bool Cache::readCache()
     int thumb_count = thumbList.arraySize();
 
     if (uri_count != hash_count) {
-        LOG_WARNING(0, "count mismatch between 'uriList' and 'hashList'");
+        LOG_WARNING(MEDIA_INDEXER_CACHE, 0, "count mismatch between 'uriList' and 'hashList'");
         return false;
     }
 
@@ -174,10 +174,10 @@ const CacheMap& Cache::getRemainingCache() const
 
 void Cache::printCache() const
 {
-    LOG_DEBUG("--------------Cached Items--------------");
+    LOG_DEBUG(MEDIA_INDEXER_CACHE, "--------------Cached Items--------------");
     for (const auto &item : cacheMap_)
-        LOG_DEBUG("uri : '%s', hash : '%lu', type : '%d', thumbnail : '%s'",
+        LOG_DEBUG(MEDIA_INDEXER_CACHE, "uri : '%s', hash : '%lu', type : '%d', thumbnail : '%s'",
                 item.first.c_str(), std::get<0>(item.second), std::get<1>(item.second),
                 std::get<2>(item.second));
-    LOG_DEBUG("----------------------------------------");
+    LOG_DEBUG(MEDIA_INDEXER_CACHE, "----------------------------------------");
 }

@@ -46,9 +46,6 @@ public:
     const std::list<std::string> &plugins() const;
 
 private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// List of available plugin uris.
     std::list<std::string> pluginUris_;
 };

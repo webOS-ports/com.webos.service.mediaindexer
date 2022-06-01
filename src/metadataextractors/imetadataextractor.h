@@ -74,8 +74,4 @@ public:
 
 protected:
     IMetaDataExtractor() {};
-
-private:
-    /// Get message id.
-    LOG_MSGID;
 };

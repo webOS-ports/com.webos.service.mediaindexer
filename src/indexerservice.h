@@ -140,9 +140,6 @@ public:
     LSHandle* getServiceHandle() { return lsHandle_; };
 
 private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Needs indexer class.
     IndexerService();
 

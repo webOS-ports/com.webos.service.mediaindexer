@@ -46,9 +46,6 @@ public:
     std::string toLower(const std::string & ext) const;
 
  private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Singleton
     Configurator(std::string confPath);
 

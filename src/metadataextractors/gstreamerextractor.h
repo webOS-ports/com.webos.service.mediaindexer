@@ -57,9 +57,6 @@ public:
     bool extractMeta(MediaItem &mediaItem, bool extra = false) const;
 
 private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Get media item meta identifier from GStreamer tag.
     MediaItem::Meta metaFromTag(const char *gstTag) const;
 

@@ -35,7 +35,7 @@ SettingsDb::~SettingsDb()
 
 void SettingsDb::applySettings(const std::string &uri)
 {
-    LOG_INFO(0, "Search in settings database for '%s'", uri.c_str());
+    LOG_INFO(MEDIA_INDEXER_SETTINGSDB, 0, "Search in settings database for '%s'", uri.c_str());
     find(uri, true);
 }
 
@@ -53,12 +53,12 @@ bool SettingsDb::handleLunaResponse(LSMessage *msg)
     struct SessionData sd;
     if (!sessionDataFromToken(LSMessageGetResponseToken(msg), &sd, HDL_LUNA_CONN))
     {
-        LOG_ERROR(0, "sessionDataFromToken failed");
+        LOG_ERROR(MEDIA_INDEXER_SETTINGSDB, 0, "sessionDataFromToken failed");
         return false;
     }
 
     auto dbServiceMethod = sd.dbServiceMethod;
-    LOG_INFO(0, "Received response com.webos.mediadb for: '%s'",
+    LOG_INFO(MEDIA_INDEXER_SETTINGSDB, 0, "Received response com.webos.mediadb for: '%s'",
             dbServiceMethod.c_str());
 
     if (dbServiceMethod != std::string("find"))
@@ -67,9 +67,9 @@ bool SettingsDb::handleLunaResponse(LSMessage *msg)
     // we do not need to check, the service implementation should do that
     pbnjson::JDomParser parser(pbnjson::JSchema::AllSchema());
     const char *payload = LSMessageGetPayload(msg);
-    LOG_DEBUG("payload : %s", payload);
+    LOG_DEBUG(MEDIA_INDEXER_SETTINGSDB, "payload : %s", payload);
     if (!parser.parse(payload)) {
-        LOG_ERROR(0, "Invalid JSON message: %s", payload);
+        LOG_ERROR(MEDIA_INDEXER_SETTINGSDB, 0, "Invalid JSON message: %s", payload);
         return false;
     }
 

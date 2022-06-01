@@ -80,7 +80,7 @@ bool MediaIndexer::get(const std::string &uri)
             return false;
 
         std::shared_lock lock(lock_);
-        LOG_DEBUG("add plugin uri : %s to plugins",plg->uri().c_str());
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAINDEXER, "add plugin uri : %s to plugins",plg->uri().c_str());
         plugins_[plg->uri()] = plg;
 
 #if defined HAS_LUNA
@@ -108,10 +108,10 @@ bool MediaIndexer::addPlugin(const std::string &uri)
 
             std::shared_lock lock(lock_);
             plugins_[plg->uri()] = plg;
-            LOG_DEBUG("add plugin uri : %s to plugins",plg->uri().c_str());
+            LOG_DEBUG(MEDIA_INDEXER_MEDIAINDEXER, "add plugin uri : %s to plugins",plg->uri().c_str());
         }
     } else {
-        LOG_ERROR(0, "Invalid Input parameter");
+        LOG_ERROR(MEDIA_INDEXER_MEDIAINDEXER, 0, "Invalid Input parameter");
         return false;
     }
     return true;
@@ -149,9 +149,9 @@ bool MediaIndexer::put(const std::string &uri)
 bool MediaIndexer::setDetect(bool on)
 {
     std::shared_lock lock(lock_);
-    LOG_DEBUG("setDetect Start");
+    LOG_DEBUG(MEDIA_INDEXER_MEDIAINDEXER, "setDetect Start");
     for (auto const & [uri, plg] : plugins_) {
-        LOG_DEBUG("uri : %s",uri.c_str());
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAINDEXER, "uri : %s",uri.c_str());
         setDetect(on, uri);
     }
 
@@ -161,10 +161,10 @@ bool MediaIndexer::setDetect(bool on)
 bool MediaIndexer::setDetect(bool on, const std::string &uri)
 {
     if (!hasPlugin(uri)) {
-        LOG_DEBUG("%s is not included in plugin list of mediaindexer service", uri.c_str());
+        LOG_DEBUG(MEDIA_INDEXER_MEDIAINDEXER, "%s is not included in plugin list of mediaindexer service", uri.c_str());
         return false;
     }
-    LOG_DEBUG("Plugin Found");
+    LOG_DEBUG(MEDIA_INDEXER_MEDIAINDEXER, "Plugin Found");
     {
         std::shared_lock lock(lock_);
 
@@ -202,7 +202,7 @@ bool MediaIndexer::sendDeviceNotification(LSMessage * msg)
 
 void MediaIndexer::deviceStateChanged(std::shared_ptr<Device> device)
 {
-    LOG_INFO(0, "Device '%s' has been %s", device->uri().c_str(),
+    LOG_INFO(MEDIA_INDEXER_MEDIAINDEXER, 0, "Device '%s' has been %s", device->uri().c_str(),
         device->available() ? "added" : "removed");
 
 #if defined HAS_LUNA
@@ -226,7 +226,7 @@ void MediaIndexer::deviceStateChanged(std::shared_ptr<Device> device)
 
 void MediaIndexer::deviceModified(std::shared_ptr<Device> device)
 {
-    LOG_INFO(0, "Device '%s' has been modified", device->uri().c_str());
+    LOG_INFO(MEDIA_INDEXER_MEDIAINDEXER, 0, "Device '%s' has been modified", device->uri().c_str());
 
 #if defined HAS_LUNA
     // notify subscribers
@@ -242,7 +242,7 @@ void MediaIndexer::newMediaItem(MediaItemPtr mediaItem)
     // if the media item has not yet been parsed we first check if
     // parsing is necessary at all
     if (!mediaItem->parsed()) {
-        LOG_INFO(0, "New media item '%s' on '%s' found"
+        LOG_INFO(MEDIA_INDEXER_MEDIAINDEXER, 0, "New media item '%s' on '%s' found"
             " with hash '%lu' and type '%s'", mediaItem->uri().c_str(),
             dev->uri().c_str(), mediaItem->hash(),
             MediaItem::mediaTypeToString(mediaItem->type()).c_str());
@@ -259,7 +259,7 @@ void MediaIndexer::newMediaItem(MediaItemPtr mediaItem)
                 mdb->unflagDirty(std::move(mediaItem));
         }
 #else
-        LOG_INFO(0, "Device '%s' media item count (audio/video/images): %i/%i/%i",
+        LOG_INFO(MEDIA_INDEXER_MEDIAINDEXER, 0, "Device '%s' media item count (audio/video/images): %i/%i/%i",
             dev->uri().c_str(), dev->mediaItemCount(MediaItem::Type::Audio),
             dev->mediaItemCount(MediaItem::Type::Video),
             dev->mediaItemCount(MediaItem::Type::Image));
@@ -267,7 +267,7 @@ void MediaIndexer::newMediaItem(MediaItemPtr mediaItem)
 #endif
     } else {
         // if parsing has been completed update the media database
-        LOG_INFO(0, "Media item '%s' has been parsed", mediaItem->uri().c_str());
+        LOG_INFO(MEDIA_INDEXER_MEDIAINDEXER, 0, "Media item '%s' has been parsed", mediaItem->uri().c_str());
 #if defined HAS_LUNA
         auto mdb = MediaDb::instance();
         mdb->updateMediaItem(std::move(mediaItem));
@@ -327,7 +327,7 @@ bool MediaIndexer::sendMediaMetaDataNotification(const std::string &method,
                                                  const std::string &metaData,
                                                  LSMessage *msg)
 {
-    LOG_INFO(0, "MediaIndexer::sendMediaListNotification");
+    LOG_INFO(MEDIA_INDEXER_MEDIAINDEXER, 0, "MediaIndexer::sendMediaListNotification");
     return indexerService_->notifyMediaMetaData(method, metaData, msg);
 }
 

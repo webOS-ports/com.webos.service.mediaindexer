@@ -52,11 +52,11 @@ Storage::Storage() : Plugin(Storage::uri)
         {
             if (!std::filesystem::create_directory(storageDev.path, err))
             {
-                LOG_WARNING(0, "Failed to create directory %s, error : %s",
+                LOG_WARNING(MEDIA_INDEXER_STORAGE, 0, "Failed to create directory %s, error : %s",
                     storageDev.path.c_str(), err.message().c_str());
-                LOG_DEBUG("Retry with create_directories");
+                LOG_DEBUG(MEDIA_INDEXER_STORAGE, "Retry with create_directories");
                 if (!std::filesystem::create_directories(storageDev.path, err)) {
-                    LOG_ERROR(0, "Retry Failed, error : %s", err.message().c_str());
+                    LOG_ERROR(MEDIA_INDEXER_STORAGE, 0, "Retry Failed, error : %s", err.message().c_str());
                 }
             }
         }
@@ -70,7 +70,7 @@ Storage::~Storage()
 
 int Storage::runDeviceDetection(bool start)
 {
-    LOG_DEBUG("%s all configured paths", start ? "Set" : "Unset");
+    LOG_DEBUG(MEDIA_INDEXER_STORAGE, "%s all configured paths", start ? "Set" : "Unset");
 
     for (auto dev : devs_) {
         std::stringstream suri;

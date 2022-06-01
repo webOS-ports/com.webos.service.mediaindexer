@@ -37,7 +37,6 @@ public:
     bool sendMessage(const std::string &uri, const std::string &payload, DbObserverCallback cb, void *ctx);
     
 private:
-    LOG_MSGID;
     const std::string serverStatusUrl_ = "luna://com.webos.service.bus/signal/registerServerStatus";
     const std::string serviceName_ = "com.webos.mediadb";
     LSHandle *handle_;

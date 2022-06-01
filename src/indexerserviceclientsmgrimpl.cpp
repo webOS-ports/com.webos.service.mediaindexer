@@ -31,11 +31,11 @@ bool IndexerServiceClientsMgrImpl::addClient(const std::string &sender,
                                              const LSMessageToken &token)
 {
     if (!isClientExist(sender, method, token)) {
-        LOG_ERROR(0, "client already added: sender[%s] method[%s] token[%ld]",
+        LOG_ERROR(MEDIA_INDEXER_INDEXERSERVICECLT, 0, "client already added: sender[%s] method[%s] token[%ld]",
                 sender.c_str(), method.c_str(), token);
         return false;
     }
-    LOG_DEBUG("Client added: sender[%s] method[%s] token[%ld]",
+    LOG_DEBUG(MEDIA_INDEXER_INDEXERSERVICECLT, "Client added: sender[%s] method[%s] token[%ld]",
             sender.c_str(), method.c_str(), token);
     auto client = std::make_pair(sender, method);
     clients_.emplace(token, client);
@@ -54,13 +54,13 @@ bool IndexerServiceClientsMgrImpl::removeClient(const std::string &sender,
     auto targetClient = std::make_pair(sender, method);
 
     if (client != targetClient) {
-        LOG_DEBUG("Failed to remove: sender[%s]<->stored sender[%s] \
+        LOG_DEBUG(MEDIA_INDEXER_INDEXERSERVICECLT, "Failed to remove: sender[%s]<->stored sender[%s] \
                 method[%s]<->stored method[%s]", sender.c_str(), client.first.c_str(),
                 method.c_str(), client.second.c_str());
         return false;
     }
 
-    LOG_DEBUG("Client removed: sender[%s] method[%s] token[%ld]",
+    LOG_DEBUG(MEDIA_INDEXER_INDEXERSERVICECLT, "Client removed: sender[%s] method[%s] token[%ld]",
             client.first.c_str(), client.second.c_str(), token);
     clients_.erase(it);
     return true;

@@ -44,7 +44,7 @@ std::shared_ptr<IMetaDataExtractor> IMetaDataExtractor::extractor(const MediaIte
             //extractor = std::make_shared<GStreamerExtractor>();
             break;
         default:
-            LOG_ERROR(0, "Invalid extractor type : %d", type);
+            LOG_ERROR(MEDIA_INDEXER_IMETADATAEXTRACTOR, 0, "Invalid extractor type : %d", type);
             break;
     }
     return extractor;
@@ -97,13 +97,13 @@ std::string IMetaDataExtractor::lastModifiedDate(MediaItem &mediaItem, bool loca
     std::string path = mediaItem.path();
     if (path.empty())
     {
-        LOG_ERROR(0, "Invalid media item path");
+        LOG_ERROR(MEDIA_INDEXER_IMETADATAEXTRACTOR, 0, "Invalid media item path");
         return "";
     }
 
     struct stat fStatus;
     if (stat(path.c_str(), &fStatus) < 0) {
-        LOG_ERROR(0, "stat error, caused by : %s", strerror(errno));
+        LOG_ERROR(MEDIA_INDEXER_IMETADATAEXTRACTOR, 0, "stat error, caused by : %s", strerror(errno));
         return "";
     }
     std::stringstream ss;
@@ -111,11 +111,11 @@ std::string IMetaDataExtractor::lastModifiedDate(MediaItem &mediaItem, bool loca
     if (localTime)
     {
         ss << std::put_time(std::localtime(&timeFormatted), "%c %Z");
-        LOG_DEBUG("Return time with formatted value %s", ss.str().c_str());
+        LOG_DEBUG(MEDIA_INDEXER_IMETADATAEXTRACTOR, "Return time with formatted value %s", ss.str().c_str());
         return ss.str();
     }
     ss << std::put_time(std::gmtime(&timeFormatted), "%c %Z");
-    LOG_DEBUG("Return time with formatted value %s", ss.str().c_str());
+    LOG_DEBUG(MEDIA_INDEXER_IMETADATAEXTRACTOR, "Return time with formatted value %s", ss.str().c_str());
     return ss.str();
 }
 

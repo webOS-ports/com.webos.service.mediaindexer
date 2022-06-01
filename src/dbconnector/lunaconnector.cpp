@@ -31,9 +31,9 @@ LunaConnector::LunaConnector(const std::string& name, bool async)
       async_(async)
 {
     lunaError_t lunaErr;
-    LOG_DEBUG("[LunaConnector] Ctor for service name : %s", name.c_str());
+    LOG_DEBUG(MEDIA_INDEXER_LUNACONNECTOR, "[LunaConnector] Ctor for service name : %s", name.c_str());
     if (serviceName_.empty()) {
-        LOG_ERROR(0, "[ERROR] Ctor of LunaConnector : Invalid service name");
+        LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "[ERROR] Ctor of LunaConnector : Invalid service name");
         return;
     }
 
@@ -46,7 +46,7 @@ LunaConnector::LunaConnector(const std::string& name, bool async)
     }
 
     auto handleFailure = [this] (const std::string & log) {
-        LOG_ERROR(0, "[ERROR] Ctor of LunaConnector : %s", log.c_str());
+        LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "[ERROR] Ctor of LunaConnector : %s", log.c_str());
         g_main_context_unref(mainContext_);
         if( mainLoop_ )
             g_main_loop_unref(mainLoop_);
@@ -70,7 +70,7 @@ LunaConnector::LunaConnector(const std::string& name, bool async)
     if (async_)
         loopAsync();
     g_main_context_unref(mainContext_);
-    LOG_DEBUG("[LunaConnector] Ctor Done");
+    LOG_DEBUG(MEDIA_INDEXER_LUNACONNECTOR, "[LunaConnector] Ctor Done");
 }
 
 LunaConnector::~LunaConnector()
@@ -82,14 +82,14 @@ LunaConnector::~LunaConnector()
         task_.join();
     isTaskStarted_ = false;
     if (!handle_) {
-        LOG_ERROR(0, "[ERROR] Dtor of LunaConnector : LSHandle is invalid");
+        LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "[ERROR] Dtor of LunaConnector : LSHandle is invalid");
         return;
     }
     g_main_loop_quit(mainLoop_);
     g_main_context_unref(mainContext_);
 
     if (!LSUnregister(handle_, &lunaErr)) {
-        LOG_ERROR(0, "[ERROR] Dtor of LunaConnector : Fail occurred in LSUnregister");
+        LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "[ERROR] Dtor of LunaConnector : Fail occurred in LSUnregister");
         return;
     }
 
@@ -100,7 +100,7 @@ LunaConnector::~LunaConnector()
 bool LunaConnector::run()
 {
     if (!stopped_) {
-        LOG_DEBUG("LunaConnector loop started");
+        LOG_DEBUG(MEDIA_INDEXER_LUNACONNECTOR, "LunaConnector loop started");
         isTaskStarted_ = true;
         cv_.notify_one();
         if (mainLoop_)
@@ -135,19 +135,19 @@ bool LunaConnector::_syncCallback(LSHandle *hdl, LSMessage *msg, void *ctx)
 {
     bool ret = true;
     std::lock_guard<std::mutex> syncLock_(syncCallbackLock_);
-    LOG_DEBUG("Get response from sender");
-    LOG_DEBUG("Sender Service Name : %s", LSMessageGetSenderServiceName(msg));
-    LOG_DEBUG("Message : %s", LSMessageGetPayload(msg));
+    LOG_DEBUG(MEDIA_INDEXER_LUNACONNECTOR, "Get response from sender");
+    LOG_DEBUG(MEDIA_INDEXER_LUNACONNECTOR, "Sender Service Name : %s", LSMessageGetSenderServiceName(msg));
+    LOG_DEBUG(MEDIA_INDEXER_LUNACONNECTOR, "Message : %s", LSMessageGetPayload(msg));
 
     CallbackWrapper *wrapper = static_cast<CallbackWrapper *>(ctx);
     if (!wrapper) {
-        LOG_ERROR(0, "Fatal Error : sync callback wrapper broken");
+        LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "Fatal Error : sync callback wrapper broken");
         wrapper->wakeUp();
         return false;
     }
     LSMessageRef(msg);
     if (!wrapper->callback(hdl, msg)) {
-        LOG_ERROR(0, "Fail occurred in sync callback function");
+        LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "Fail occurred in sync callback function");
         ret = false;
     }
     LSMessageUnref(msg);
@@ -164,12 +164,12 @@ bool LunaConnector::_Callback(LSHandle *hdl, LSMessage *msg, void *ctx)
     if (wrapper) {
         LSMessageRef(msg);
         if (!wrapper->callback(hdl, msg)) {
-            LOG_ERROR(0, "Fail occurred in callback function");
+            LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "Fail occurred in callback function");
             ret = false;
         }
         LSMessageUnref(msg);
     } else {
-        LOG_ERROR(0, "Fatal Error : callback wrapper broken");
+        LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "Fatal Error : callback wrapper broken");
         ret = false;
     }
     return ret;
@@ -184,13 +184,13 @@ bool LunaConnector::sendMessage(const std::string &uri, const std::string &paylo
     lunaError_t lunaErr;
     LSMessageToken *msgToken = (token == nullptr) ? &token_ : token;
     std::string method = forcemethod.empty() ? uri.substr(uri.find_last_of('/') + 1) : forcemethod;
-    LOG_DEBUG("uri : %s, payload : %s, async : %d, method : %s", 
+    LOG_DEBUG(MEDIA_INDEXER_LUNACONNECTOR, "uri : %s, payload : %s, async : %d, method : %s", 
             uri.c_str(), payload.c_str(), async, method.c_str());
     if (!async_) {
         if (!LSCallOneReply(handle_, uri.c_str(), payload.c_str(),
                             cb, ctx, msgToken, &lunaErr)) {
-            LOG_ERROR(0, "Failed to send message %s", payload.c_str());
-            LOG_ERROR(0, "Error Message : %s", lunaErr.message);
+            LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "Failed to send message %s", payload.c_str());
+            LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "Error Message : %s", lunaErr.message);
             return false;
         }
 
@@ -211,8 +211,8 @@ bool LunaConnector::sendMessage(const std::string &uri, const std::string &paylo
             if (!LSCallOneReply(handle_, uri.c_str(), payload.c_str(),
                                 _Callback, &callbackWrapper,
                                 msgToken, &lunaErr)) {
-                LOG_ERROR(0, "Failed to send message %s", payload.c_str());
-                LOG_ERROR(0, "Error Message : %s", lunaErr.message);
+                LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "Failed to send message %s", payload.c_str());
+                LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "Error Message : %s", lunaErr.message);
                 return false;
             }
             if (tokenCallback_)
@@ -223,15 +223,15 @@ bool LunaConnector::sendMessage(const std::string &uri, const std::string &paylo
                 if (!LSCallOneReply(handle_, uri.c_str(), payload.c_str(),
                                     _syncCallback, &callbackWrapper,
                                     msgToken, &lunaErr)) {
-                    LOG_ERROR(0, "Failed to send message %s", payload.c_str());
-                    LOG_ERROR(0, "Error Message : %s", lunaErr.message);
+                    LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "Failed to send message %s", payload.c_str());
+                    LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "Error Message : %s", lunaErr.message);
                     return false;
                 }
                 if (tokenCallback_)
                     tokenCallback_(*msgToken, method, indexerMethod, obj);
             }
             if (callbackWrapper.wait(lock_)) {
-                LOG_ERROR(0, "Sync handler timeout!");
+                LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "Sync handler timeout!");
                 if (tokenCancelCallback_)
                     tokenCancelCallback_(*msgToken, nullptr);
                 return false;
@@ -246,8 +246,8 @@ bool LunaConnector::sendResponse(LSHandle * sender, LSMessage * message, const s
 {
     lunaError_t lunaErr;
     if (!LSMessageReply(sender, message, object.c_str(), &lunaErr)) {
-        LOG_ERROR(0, "Message reply error");
-        LOG_ERROR(0, "Error Message : %s", lunaErr.message);
+        LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "Message reply error");
+        LOG_ERROR(MEDIA_INDEXER_LUNACONNECTOR, 0, "Error Message : %s", lunaErr.message);
         return false;
     }
     return true;
@@ -256,7 +256,7 @@ bool LunaConnector::sendResponse(LSHandle * sender, LSMessage * message, const s
 void* LunaConnector::messageThread(void * ctx)
 {
     LunaConnector* self = static_cast<LunaConnector *>(ctx);
-    LOG_DEBUG("messageThread %d Start!", gettid());
+    LOG_DEBUG(MEDIA_INDEXER_LUNACONNECTOR, "messageThread %d Start!", gettid());
     self->run();
     return NULL;
 }

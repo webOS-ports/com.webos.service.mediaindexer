@@ -423,9 +423,6 @@ public:
     void setThumbnailFileName(const std::string& name);
 
 private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Device mandatory for construction.
     MediaItem() : type_(Type::EOL), hash_(0), filesize_(0), parsed_(false), extractorType_(MediaItem::ExtractorType::EOL) {};
 

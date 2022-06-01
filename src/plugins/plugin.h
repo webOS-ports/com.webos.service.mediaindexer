@@ -227,9 +227,6 @@ protected:
     virtual int runDeviceDetection(bool start) = 0;
 
 private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Plugin must be constructed with uri.
     Plugin() {};
 

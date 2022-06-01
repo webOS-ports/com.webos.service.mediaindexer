@@ -31,7 +31,7 @@ void PdmListener::init(LSHandle * lsHandle)
 PdmListener *PdmListener::instance()
 {
     if (!lsHandle_) {
-        LOG_CRITICAL(0, "Luna bus handle not set");
+        LOG_CRITICAL(MEDIA_INDEXER_PDMLISTENER, 0, "Luna bus handle not set");
         return nullptr;
     }
 
@@ -74,7 +74,7 @@ void PdmListener::setDeviceNotifications(IPdmObserver *observer,
             subscribe();
         }
 
-        LOG_DEBUG("Add observer %p", observer);
+        LOG_DEBUG(MEDIA_INDEXER_PDMLISTENER, "Add observer %p", observer);
 
         // Remember the observer for notifications.
         deviceObservers_[type].push_back(observer);
@@ -86,7 +86,7 @@ void PdmListener::setDeviceNotifications(IPdmObserver *observer,
         }
 
     } else if (!deviceObservers_[type].empty()) {
-        LOG_DEBUG("Remove observer %p", observer);
+        LOG_DEBUG(MEDIA_INDEXER_PDMLISTENER, "Remove observer %p", observer);
         deviceObservers_[type].remove(observer);
     }
 }
@@ -96,7 +96,7 @@ void PdmListener::subscribe()
     auto subscription = pbnjson::Object();
 
     subscription.put("subscribe", true);
-    LOG_INFO(0, "Subscribed for com.webos.service.pdm/getAttachedStorageDeviceList");
+    LOG_INFO(MEDIA_INDEXER_PDMLISTENER, 0, "Subscribed for com.webos.service.pdm/getAttachedStorageDeviceList");
 
     LSError lsError;
     LSErrorInit(&lsError);
@@ -105,7 +105,7 @@ void PdmListener::subscribe()
     if (!LSCall(lsHandle_, pdmUrl_, subscription.stringify().c_str(),
             PdmListener::onDeviceNotification, this, &sessionToken,
             &lsError)) {
-        LOG_ERROR(0, "PDM service subscription error");
+        LOG_ERROR(MEDIA_INDEXER_PDMLISTENER, 0, "PDM service subscription error");
         return;
     }
 }
@@ -170,11 +170,11 @@ bool PdmListener::onDeviceNotification(LSHandle *lsHandle, LSMessage *msg,
     pbnjson::JDomParser parser(pbnjson::JSchema::AllSchema());
 
     if (!parser.parse(payload)) {
-        LOG_ERROR(0, "Invalid JSON message: %s", payload);
+        LOG_ERROR(MEDIA_INDEXER_PDMLISTENER, 0, "Invalid JSON message: %s", payload);
         return false;
     }
 
-    LOG_INFO(0, "Pdm attached storage device update received: %s", payload);
+    LOG_INFO(MEDIA_INDEXER_PDMLISTENER, 0, "Pdm attached storage device update received: %s", payload);
 
     pbnjson::JValue domTree(parser.getDom());
 
@@ -200,7 +200,7 @@ bool PdmListener::onDeviceNotification(LSHandle *lsHandle, LSMessage *msg,
     // are attached for
     for (ssize_t i = 0; i < storageDeviceList.arraySize(); ++i) {
         if (!storageDeviceList[i].hasKey("storageDriveList")) {
-            LOG_DEBUG("storageDriveList is not valid format");
+            LOG_DEBUG(MEDIA_INDEXER_PDMLISTENER, "storageDriveList is not valid format");
             continue;
         }
 
@@ -209,13 +209,13 @@ bool PdmListener::onDeviceNotification(LSHandle *lsHandle, LSMessage *msg,
         // storageDriveList always has only one drive.
         auto drive = storageDriveList[0];
         if (!drive.hasKey("mountName")) {
-            LOG_ERROR(0, "mountName field is missing!");
+            LOG_ERROR(MEDIA_INDEXER_PDMLISTENER, 0, "mountName field is missing!");
             continue;
         }
 
         auto mountName = drive["mountName"].asString();
         if (mountName.empty()) {
-            LOG_ERROR(0, "mountName is NULL!");
+            LOG_ERROR(MEDIA_INDEXER_PDMLISTENER, 0, "mountName is NULL!");
             continue;
         }
 

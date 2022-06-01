@@ -47,7 +47,7 @@ void Plugin::unlock()
 
 void Plugin::setDeviceNotifications(IDeviceObserver *observer, bool on)
 {
-    LOG_DEBUG("setDeviceNotifications Start");
+    LOG_DEBUG(MEDIA_INDEXER_PLUGIN, "setDeviceNotifications Start");
     if (on) {
         bool firstObserver = addObserver(observer);
 
@@ -63,17 +63,17 @@ void Plugin::setDeviceNotifications(IDeviceObserver *observer, bool on)
         // If this is the first observer we need to start device
         // detection.
         if (firstObserver) {
-            LOG_INFO(0, "Enable device detection for: '%s'", uri_.c_str());
+            LOG_INFO(MEDIA_INDEXER_PLUGIN, 0, "Enable device detection for: '%s'", uri_.c_str());
             runDeviceDetection(true);
         }
         else {
-            LOG_INFO(0, "Not firstObserver, skip runDeviceDetection for: '%s'", uri_.c_str());
+            LOG_INFO(MEDIA_INDEXER_PLUGIN, 0, "Not firstObserver, skip runDeviceDetection for: '%s'", uri_.c_str());
         }
     } else {
-        LOG_DEBUG("removeObserver");
+        LOG_DEBUG(MEDIA_INDEXER_PLUGIN, "removeObserver");
         removeObserver(observer);
     }
-    LOG_DEBUG("setDeviceNotifications Done");
+    LOG_DEBUG(MEDIA_INDEXER_PLUGIN, "setDeviceNotifications Done");
 }
 
 const std::string &Plugin::uri() const
@@ -100,12 +100,12 @@ bool Plugin::injectDevice(std::shared_ptr<Device> device)
 
 bool Plugin::injectDevice(const std::string &uri, int alive, bool avail, std::string uuid)
 {
-    LOG_INFO(0, "uri = [%s], uuid[%s]", uri.c_str(), uuid.c_str());
+    LOG_INFO(MEDIA_INDEXER_PLUGIN, 0, "uri = [%s], uuid[%s]", uri.c_str(), uuid.c_str());
     bool isNew = false;
 
     if (!hasDevice(uri)) {
         std::unique_lock lock(lock_);
-        LOG_DEBUG("Make new device for uri : %s, uuid : %s", uri.c_str(), uuid.c_str());
+        LOG_DEBUG(MEDIA_INDEXER_PLUGIN, "Make new device for uri : %s, uuid : %s", uri.c_str(), uuid.c_str());
         devices_[uri] = std::make_shared<Device>(uri, alive, avail, uuid);
         isNew = true;
     } else {
@@ -131,7 +131,7 @@ bool Plugin::addDevice(const std::string &uri, int alive)
         if (!dev) {
             dev = std::make_shared<Device>(uri, alive);
             dev->init();
-            LOG_DEBUG("Make new device for uri : %s", uri.c_str());
+            LOG_DEBUG(MEDIA_INDEXER_PLUGIN, "Make new device for uri : %s", uri.c_str());
             devices_[uri] = dev;
             isNew = true;
         }
@@ -161,7 +161,7 @@ bool Plugin::addDevice(const std::string &uri, const std::string &mp, std::strin
         dev = deviceUnlocked(uri);
 
         if (!dev) {
-            LOG_DEBUG("Make new device for uri : %s, uuid : %s", uri.c_str(), uuid.c_str());
+            LOG_DEBUG(MEDIA_INDEXER_PLUGIN, "Make new device for uri : %s, uuid : %s", uri.c_str(), uuid.c_str());
             dev = std::make_shared<Device>(uri, alive, true, uuid);
             dev->init();
             dev->setMountpoint(mp);
@@ -266,7 +266,7 @@ bool Plugin::active() const
 
 void Plugin::scan(const std::string &uri)
 {
-    LOG_DEBUG("Scan start! uri : %s", uri.c_str());
+    LOG_DEBUG(MEDIA_INDEXER_PLUGIN, "Scan start! uri : %s", uri.c_str());
     // first get the device from the uri
     auto dev = device(uri);
     if (!dev)
@@ -274,34 +274,34 @@ void Plugin::scan(const std::string &uri)
 
     auto obs = dev->observer();
     if (!obs) {
-        LOG_ERROR(0, "device %s has no observer, observer is manadatory", dev->uri().c_str());
+        LOG_ERROR(MEDIA_INDEXER_PLUGIN, 0, "device %s has no observer, observer is manadatory", dev->uri().c_str());
         return;
     }
 
     // get the device mountpoint
     auto mp = dev->mountpoint();
     if (mp.empty()) {
-        LOG_ERROR(0, "Device '%s' has no mountpoint", dev->uri().c_str());
+        LOG_ERROR(MEDIA_INDEXER_PLUGIN, 0, "Device '%s' has no mountpoint", dev->uri().c_str());
         return;
     }
-    LOG_DEBUG("file scan start for mountpoint : %s!", mp.c_str());
+    LOG_DEBUG(MEDIA_INDEXER_PLUGIN, "file scan start for mountpoint : %s!", mp.c_str());
 
     bool newMountedDevice = dev->isNewMountedDevice();
     bool ret = false;
     if (newMountedDevice) {
-        LOG_DEBUG("Device %s is new mounted device!", dev->uri().c_str());
+        LOG_DEBUG(MEDIA_INDEXER_PLUGIN, "Device %s is new mounted device!", dev->uri().c_str());
         ret = doFileTreeWalk(dev, obs, mp);
     } else {
-        LOG_DEBUG("Device %s is not new mounted device, cache is used!", dev->uri().c_str());
+        LOG_DEBUG(MEDIA_INDEXER_PLUGIN, "Device %s is not new mounted device, cache is used!", dev->uri().c_str());
         ret = doFileTreeWalkWithCache(dev, obs, mp);
     }
 
     if (!ret) {
-        LOG_ERROR(0, "Failed file-tree-walk for '%s'", dev->uri().c_str());
+        LOG_ERROR(MEDIA_INDEXER_PLUGIN, 0, "Failed file-tree-walk for '%s'", dev->uri().c_str());
         return;
     }
 
-    LOG_DEBUG("Scan has been completed for uri : %s!", uri.c_str());
+    LOG_DEBUG(MEDIA_INDEXER_PLUGIN, "Scan has been completed for uri : %s!", uri.c_str());
 }
 
 bool Plugin::doFileTreeWalkWithCache(const std::shared_ptr<Device>& device,
@@ -312,7 +312,7 @@ bool Plugin::doFileTreeWalkWithCache(const std::shared_ptr<Device>& device,
     auto cacheMgr = CacheManager::instance();
     auto cache = cacheMgr->readCache(device->uri(), device->uuid());
     if (!cache) {
-        LOG_WARNING(0, "Failed to get the cache for '%s'. let's try full scanning instead!",
+        LOG_WARNING(MEDIA_INDEXER_PLUGIN, 0, "Failed to get the cache for '%s'. let's try full scanning instead!",
                 device->uri().c_str());
         return doFileTreeWalk(device, observer, mountPoint);
     }
@@ -321,7 +321,7 @@ bool Plugin::doFileTreeWalkWithCache(const std::shared_ptr<Device>& device,
         for (const auto &file : fs::recursive_directory_iterator(mountPoint)) {
             std::error_code err;
             if (!file.is_regular_file(err)) {
-                LOG_WARNING(0, "'%s' is not regular file. error message : '%s'",
+                LOG_WARNING(MEDIA_INDEXER_PLUGIN, 0, "'%s' is not regular file. error message : '%s'",
                         file.path().c_str(), err.message().c_str());
                 continue;
             }
@@ -334,7 +334,7 @@ bool Plugin::doFileTreeWalkWithCache(const std::shared_ptr<Device>& device,
             std::string ext = path.substr(path.find_last_of('.') + 1);
             auto typeInfo = configurator->getTypeInfo(ext);
             if (typeInfo.first == MediaItem::Type::EOL) {
-                LOG_WARNING(0, "'%s' is NOT supported!", ext.c_str());
+                LOG_WARNING(MEDIA_INDEXER_PLUGIN, 0, "'%s' is NOT supported!", ext.c_str());
                 continue;
             }
 
@@ -347,7 +347,7 @@ bool Plugin::doFileTreeWalkWithCache(const std::shared_ptr<Device>& device,
             // check the cache whether exist or not
             bool exist = cache->isExist(path, hash);
             if (exist) {
-                LOG_DEBUG("not needed extraction for path '%s' and hash '%" PRIu64 "'",
+                LOG_DEBUG(MEDIA_INDEXER_PLUGIN, "not needed extraction for path '%s' and hash '%" PRIu64 "'",
                         ext.c_str(), hash);
                 device->incrementMediaItemCount(type);
                 device->incrementProcessedItemCount(type);
@@ -361,10 +361,10 @@ bool Plugin::doFileTreeWalkWithCache(const std::shared_ptr<Device>& device,
             observer->newMediaItem(std::move(mi));
         }
     } catch (const std::exception &ex) {
-        LOG_ERROR(0, "Exception caught while traversing through '%s', exception : %s",
+        LOG_ERROR(MEDIA_INDEXER_PLUGIN, 0, "Exception caught while traversing through '%s', exception : %s",
             mountPoint.c_str(), ex.what());
     }
-    LOG_INFO(0, "File-tree-walk(with cache) on device '%s' has been completed",
+    LOG_INFO(MEDIA_INDEXER_PLUGIN, 0, "File-tree-walk(with cache) on device '%s' has been completed",
         device->uri().c_str());
 
     // we have to remove remaining cache with mediaDB.
@@ -387,7 +387,7 @@ bool Plugin::doFileTreeWalkWithCache(const std::shared_ptr<Device>& device,
     }
     bool ret = cacheMgr->generateCacheFile(device->uri(), cache);
     if (!ret)
-        LOG_WARNING(0, "Cache file generation fail for '%s'", device->uri().c_str());
+        LOG_WARNING(MEDIA_INDEXER_PLUGIN, 0, "Cache file generation fail for '%s'", device->uri().c_str());
     sync();
     return true;
 }
@@ -404,7 +404,7 @@ bool Plugin::doFileTreeWalk(const std::shared_ptr<Device> &device,
         for (auto &file : fs::recursive_directory_iterator(mountPoint)) {
             std::error_code err;
             if (!file.is_regular_file(err)) {
-                LOG_WARNING(0, "'%s' is not regular file. error message : '%s'",
+                LOG_WARNING(MEDIA_INDEXER_PLUGIN, 0, "'%s' is not regular file. error message : '%s'",
                         file.path().c_str(), err.message().c_str());
                 continue;
             }
@@ -417,7 +417,7 @@ bool Plugin::doFileTreeWalk(const std::shared_ptr<Device> &device,
             std::string ext = path.substr(path.find_last_of('.') + 1);
             auto typeInfo = configurator->getTypeInfo(ext);
             if (typeInfo.first == MediaItem::Type::EOL) {
-                LOG_WARNING(0, "'%s' is NOT supported!", ext.c_str());
+                LOG_WARNING(MEDIA_INDEXER_PLUGIN, 0, "'%s' is NOT supported!", ext.c_str());
                 continue;
             }
 
@@ -441,21 +441,21 @@ bool Plugin::doFileTreeWalk(const std::shared_ptr<Device> &device,
                         path, mimeType, hash, fileSize));
                 obsserver->newMediaItem(std::move(mi));
             } else {
-                LOG_WARNING(0, "mediaItem : %s is not supported", path.c_str());
+                LOG_WARNING(MEDIA_INDEXER_PLUGIN, 0, "mediaItem : %s is not supported", path.c_str());
             }
             */
         }
     } catch (const std::exception &ex) {
-        LOG_ERROR(0, "Exception caught while traversing through '%s', exception : %s",
+        LOG_ERROR(MEDIA_INDEXER_PLUGIN, 0, "Exception caught while traversing through '%s', exception : %s",
             mountPoint.c_str(), ex.what());
         return false;
     }
-    LOG_INFO(0, "File-tree-walk on device '%s' has been completed",
+    LOG_INFO(MEDIA_INDEXER_PLUGIN, 0, "File-tree-walk on device '%s' has been completed",
         device->uri().c_str());
 
     bool ret = cacheMgr->generateCacheFile(device->uri(), cache);
     if (!ret)
-        LOG_WARNING(0, "Cache file generation fail for '%s'", device->uri().c_str());
+        LOG_WARNING(MEDIA_INDEXER_PLUGIN, 0, "Cache file generation fail for '%s'", device->uri().c_str());
 
     return true;
 }
@@ -464,7 +464,7 @@ bool Plugin::checkFileInfomation(const fs::directory_entry& file)
 {
     std::error_code err;
     if (!file.is_regular_file(err)) {
-        LOG_WARNING(0, "'%s' is not regular file. error message : '%s'",
+        LOG_WARNING(MEDIA_INDEXER_PLUGIN, 0, "'%s' is not regular file. error message : '%s'",
                 file.path().c_str(), err.message().c_str());
         return false;
     }
@@ -477,7 +477,7 @@ bool Plugin::checkFileInfomation(const fs::directory_entry& file)
     std::string ext = path.substr(path.find_last_of('.') + 1);
     auto configurator = Configurator::instance();
     if (!configurator->isSupportedExtension(ext)) {
-        LOG_WARNING(0, "'%s' is NOT supported!", ext.c_str());
+        LOG_WARNING(MEDIA_INDEXER_PLUGIN, 0, "'%s' is NOT supported!", ext.c_str());
         return false;
     }
     return true;
@@ -492,7 +492,7 @@ bool Plugin::isHiddenfolder(std::string &filepath)
 
 void Plugin::extractMeta(MediaItem &mediaItem, bool expand)
 {
-    LOG_ERROR(0, "No meta data extraction for '%s'", mediaItem.uri().c_str());
+    LOG_ERROR(MEDIA_INDEXER_PLUGIN, 0, "No meta data extraction for '%s'", mediaItem.uri().c_str());
     // nothing to be done here, this should be implemented in the
     // derived plubin classes if needed
 }
@@ -511,7 +511,7 @@ std::optional<std::string> Plugin::getPlaybackUri(const std::string &uri)
     // remove the device uri from the path
     path.erase(7, dev->uri().length());
 
-    LOG_DEBUG("Playback uri for '%s' is '%s'", uri.c_str(), path.c_str());
+    LOG_DEBUG(MEDIA_INDEXER_PLUGIN, "Playback uri for '%s' is '%s'", uri.c_str(), path.c_str());
     return path;
 }
 
@@ -555,7 +555,7 @@ bool Plugin::addObserver(IDeviceObserver *observer)
 void Plugin::removeObserver(IDeviceObserver *observer)
 {
     if (addObserver(nullptr)) {
-        LOG_INFO(0, "Disable device detection for: '%s'", uri_.c_str());
+        LOG_INFO(MEDIA_INDEXER_PLUGIN, 0, "Disable device detection for: '%s'", uri_.c_str());
         runDeviceDetection(false);
         removeAll();
     }

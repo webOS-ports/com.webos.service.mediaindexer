@@ -91,9 +91,6 @@ public:
     static bool _Callback(LSHandle *hdl, LSMessage *msg, void *ctx);
 
 private:
-    /// Get message id.
-    LOG_MSGID;
-
     std::string serviceName_;
     GMainLoop *mainLoop_;
     GMainContext *mainContext_;

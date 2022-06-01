@@ -46,9 +46,6 @@ public:
     void loop();
 
 private:
-    /// Get message id.
-    LOG_MSGID;
-
     std::thread task_;
     std::mutex mutex_;
     std::condition_variable cv_;

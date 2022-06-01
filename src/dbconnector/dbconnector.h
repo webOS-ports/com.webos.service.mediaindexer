@@ -183,9 +183,6 @@ protected:
                           std::list<std::string> &kinds, void *obj = nullptr,
                           bool atomic = false, const std::string &forcemethod = "");
 
-    /// Get message id.
-    LOG_MSGID;
-
     /// Each specific database connection will be a singleton.
     DbConnector(const char *kindId, bool async = false);
     DbConnector();

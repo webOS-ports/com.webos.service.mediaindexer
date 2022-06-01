@@ -66,10 +66,6 @@
 static GMainLoop *mainLoop = nullptr;
 static std::atomic<bool> terminating(false);
 
-[[maybe_unused]] static const char *__msgId();
-// Logging helper
-LOG_MSGID;
-
 #if defined HAS_LUNA
 // The Luna service name of this application
 const char *lunaServiceId = "com.webos.service.mediaindexer";
@@ -81,7 +77,7 @@ static void signalHandler(int sigNum)
         return;
 
     terminating = true;
-    LOG_WARNING(0, "Graceful shutdown");
+    LOG_WARNING(MEDIA_INDEXER_MAIN, 0, "Graceful shutdown");
 
 #if defined HAS_LUNA
     if (mainLoop)
@@ -103,11 +99,11 @@ int main(int argc, char *argv[])
     //signal(SIGABRT, signalHandler);
     //signal(SIGINT, signalHandler);
 
-    LOG_INFO(0, "//*****************************************//");
-    LOG_INFO(0, "//                                         //");
-    LOG_INFO(0, "//      Mediaindexer service started       //");
-    LOG_INFO(0, "//                                         //");
-    LOG_INFO(0, "//*****************************************//");
+    LOG_INFO(MEDIA_INDEXER_MAIN, 0, "//*****************************************//");
+    LOG_INFO(MEDIA_INDEXER_MAIN, 0, "//                                         //");
+    LOG_INFO(MEDIA_INDEXER_MAIN, 0, "//      Mediaindexer service started       //");
+    LOG_INFO(MEDIA_INDEXER_MAIN, 0, "//                                         //");
+    LOG_INFO(MEDIA_INDEXER_MAIN, 0, "//*****************************************//");
 
 #if defined HAS_GSTREAMER
     gst_init(nullptr, nullptr);
@@ -115,10 +111,10 @@ int main(int argc, char *argv[])
 
     // we need the mainloop for the luna service and client as well as
     // for the GStreamer stuff
-    LOG_DEBUG("Enable and configure glib mainloop");
+    LOG_DEBUG(MEDIA_INDEXER_MAIN, "Enable and configure glib mainloop");
     mainLoop = g_main_loop_new(NULL, false);
 
-    LOG_INFO(0, "Enable media indexer service");
+    LOG_INFO(MEDIA_INDEXER_MAIN, 0, "Enable media indexer service");
     MediaIndexer::init(mainLoop);
     MediaIndexer::instance();
 

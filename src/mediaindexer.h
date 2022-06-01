@@ -150,9 +150,6 @@ protected:
     void removeMediaItem(MediaItemPtr mediaItem);
 
 private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Singleton.
     MediaIndexer();
 

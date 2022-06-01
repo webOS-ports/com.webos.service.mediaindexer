@@ -68,9 +68,6 @@ public:
         PdmDevice::DeviceType type, bool on);
 
 private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Singleton.
     PdmListener();
 

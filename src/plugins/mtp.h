@@ -69,9 +69,6 @@ public:
 #endif
 
 private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Singleton object.
     static std::shared_ptr<Plugin> instance_;
 

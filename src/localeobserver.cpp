@@ -32,9 +32,9 @@ bool LocaleObserver::locateSettingsCallback(LSHandle * hdl, LSMessage * msg, voi
     LocaleObserver * self = static_cast<LocaleObserver*>(ctx);
     pbnjson::JDomParser parser(pbnjson::JSchema::AllSchema());
     const char *payload = LSMessageGetPayload(msg);
-    LOG_DEBUG("payload : %s",payload);
+    LOG_DEBUG(MEDIA_INDEXER_LOCALEOBSERVER, "payload : %s",payload);
     if (!parser.parse(payload)) {
-            LOG_ERROR(0, "Invalid JSON message: %s", payload);
+            LOG_ERROR(MEDIA_INDEXER_LOCALEOBSERVER, 0, "Invalid JSON message: %s", payload);
             return false;
     }
 
@@ -47,7 +47,7 @@ bool LocaleObserver::locateSettingsCallback(LSHandle * hdl, LSMessage * msg, voi
                 if (localeInfo.hasKey("locales")) {
                     if (localeInfo["locales"].hasKey("UI")) {
                         self->locale = localeInfo["locales"]["UI"].asString();
-                        LOG_INFO(0, "Locale info : %s", self->locale.c_str());
+                        LOG_INFO(MEDIA_INDEXER_LOCALEOBSERVER, 0, "Locale info : %s", self->locale.c_str());
                         if (self->notifyCallback_)
                             self->notifyCallback_(self->locale);
                     }
@@ -61,10 +61,9 @@ bool LocaleObserver::locateSettingsCallback(LSHandle * hdl, LSMessage * msg, voi
 
 bool LocaleObserver::sendMessage(const std::string &uri, const std::string &payload, LocaleObserverCallback cb, void *ctx)
 {
-    bool ret = true;
     lunaError_t lunaErr;
     if (!LSCall(handle_, uri.c_str(), payload.c_str(), cb, ctx, NULL, &lunaErr)) {
-        LOG_ERROR(0, "Failed to send message, uri : %s, payload : %s",uri.c_str(), payload.c_str());
+        LOG_ERROR(MEDIA_INDEXER_LOCALEOBSERVER, 0, "Failed to send message, uri : %s, payload : %s",uri.c_str(), payload.c_str());
         return false;
     }
     return true;

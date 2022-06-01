@@ -41,7 +41,7 @@ void DeviceDb::injectKnownDevices(const std::string &uri)
 {
     // request all devices from the database that start with the given
     // uri
-    LOG_INFO(0, "Search for already known devices in database");
+    LOG_INFO(MEDIA_INDEXER_DEVICEDB, 0, "Search for already known devices in database");
     find(uri, false, nullptr, "", true);
 }
 
@@ -52,7 +52,7 @@ bool DeviceDb::handleLunaResponse(LSMessage *msg)
         return false;
 
     auto dbServiceMethod = sd.dbServiceMethod;
-    LOG_INFO(0, "Received response com.webos.mediadb for: '%s'", dbServiceMethod.c_str());
+    LOG_INFO(MEDIA_INDEXER_DEVICEDB, 0, "Received response com.webos.mediadb for: '%s'", dbServiceMethod.c_str());
 
     if (dbServiceMethod != std::string("find"))
         return true;
@@ -60,10 +60,10 @@ bool DeviceDb::handleLunaResponse(LSMessage *msg)
     // we do not need to check, the service implementation should do that
     pbnjson::JDomParser parser(pbnjson::JSchema::AllSchema());
     const char *payload = LSMessageGetPayload(msg);
-    LOG_DEBUG("payload : %s", payload);
+    LOG_DEBUG(MEDIA_INDEXER_DEVICEDB, "payload : %s", payload);
 
     if (!parser.parse(payload)) {
-        LOG_ERROR(0, "Invalid JSON message: %s", payload);
+        LOG_ERROR(MEDIA_INDEXER_DEVICEDB, 0, "Invalid JSON message: %s", payload);
         return false;
     }
 
@@ -90,7 +90,7 @@ bool DeviceDb::handleLunaResponse(LSMessage *msg)
         int alive;
         match["alive"].asNumber(alive);
 
-        LOG_INFO(0, "Device '%s', uuid '%s' will be injected into plugin", uri.c_str(),uuid.c_str());
+        LOG_INFO(MEDIA_INDEXER_DEVICEDB, 0, "Device '%s', uuid '%s' will be injected into plugin", uri.c_str(),uuid.c_str());
 
         if (plg->injectDevice(uri, alive, false, uuid)) {
             auto meta = match["name"].asString();
@@ -130,7 +130,7 @@ DeviceDb::DeviceDb() :
 
 void DeviceDb::deviceStateChanged(std::shared_ptr<Device> device)
 {
-    LOG_INFO(0, "Device '%s' has been %s", device->uri().c_str(),
+    LOG_INFO(MEDIA_INDEXER_DEVICEDB, 0, "Device '%s' has been %s", device->uri().c_str(),
         device->available() ? "added" : "removed");
 
     // we only write updates if device appears
@@ -140,7 +140,7 @@ void DeviceDb::deviceStateChanged(std::shared_ptr<Device> device)
 
 void DeviceDb::deviceModified(std::shared_ptr<Device> device)
 {
-    LOG_INFO(0, "Device '%s' has been modified", device->uri().c_str());
+    LOG_INFO(MEDIA_INDEXER_DEVICEDB, 0, "Device '%s' has been modified", device->uri().c_str());
     updateDevice(device);
 }
 

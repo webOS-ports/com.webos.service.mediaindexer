@@ -25,7 +25,7 @@ JSonParser::JSonParser(const char* message)
     }
 
     _dom = parser.getDom();
-    LOG_DEBUG("JSON string is '%s'", _dom.stringify().c_str());
+    LOG_DEBUG(MEDIA_INDEXER_JSONPARSER, "JSON string is '%s'", _dom.stringify().c_str());
 }
 
 JSonParser::JSonParser(const pbnjson::JValue& value)
@@ -35,5 +35,5 @@ JSonParser::JSonParser(const pbnjson::JValue& value)
     }
 
     _dom = value;
-    LOG_DEBUG("JSON string is '%s'", _dom.stringify().c_str());
+    LOG_DEBUG(MEDIA_INDEXER_JSONPARSER, "JSON string is '%s'", _dom.stringify().c_str());
 }

@@ -15,8 +15,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "imageextractor.h"
 #define PNG_BYTES_TO_CHECK 8
-#define MSGID "IMAGEEXTRACTOR"
-LOG_MSGID
 
 static bool setJpegImageResolution(MediaItem &mediaItem, void *ctx);
 static bool setBmpImageResolution(MediaItem &mediaItem, void *ctx);
@@ -70,7 +68,7 @@ bool setJpegImageResolution(MediaItem &mediaItem, void *ctx)
 
     FILE *fp = fopen(mediaItem.path().c_str(), "rb");
     if(fp == NULL) {
-         LOG_ERROR(0, "Failed to open file %s", mediaItem.path().c_str());
+         LOG_ERROR(MEDIA_INDEXER_IMAGEEXTRACTOR, 0, "Failed to open file %s", mediaItem.path().c_str());
          return false;
     }
     cinfo.err = jpeg_std_error(&jpeg_error_handler.jerr);
@@ -78,7 +76,7 @@ bool setJpegImageResolution(MediaItem &mediaItem, void *ctx)
         longjmp(reinterpret_cast<jpegErrorHandler*>(info->err)->setjmpBuffer, 1);
     };
     if(setjmp(jpeg_error_handler.setjmpBuffer)) {
-        LOG_ERROR(0, "error while reading JPEG file");
+        LOG_ERROR(MEDIA_INDEXER_IMAGEEXTRACTOR, 0, "error while reading JPEG file");
         jpeg_destroy_decompress(&cinfo);
         fclose(fp);
         return false;
@@ -92,7 +90,7 @@ bool setJpegImageResolution(MediaItem &mediaItem, void *ctx)
     fclose(fp);
     //auto end = std::chrono::high_resolution_clock::now();
     //auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-    //LOG_DEBUG("elapsed time = %d", (int)(elapsedTime.count()));
+    //LOG_DEBUG(MEDIA_INDEXER_IMAGEEXTRACTOR, "elapsed time = %d", (int)(elapsedTime.count()));
     return true;
 }
 
@@ -102,16 +100,16 @@ bool setBmpImageResolution(MediaItem &mediaItem, void *ctx)
     gint width, height;
     auto fname = mediaItem.path().c_str();
     if (gdk_pixbuf_get_file_info(fname, &width, &height)) {
-        LOG_DEBUG("set width/height of bmp file for %s, (%d, %d)", fname, width, height);
+        LOG_DEBUG(MEDIA_INDEXER_IMAGEEXTRACTOR, "set width/height of bmp file for %s, (%d, %d)", fname, width, height);
         mediaItem.setMeta(MediaItem::Meta::Width, MediaItem::MetaData(width));
         mediaItem.setMeta(MediaItem::Meta::Height, MediaItem::MetaData(height));
     } else {
-        LOG_ERROR(0, "Failed to get information from bmp %s", fname);
+        LOG_ERROR(MEDIA_INDEXER_IMAGEEXTRACTOR, 0, "Failed to get information from bmp %s", fname);
         return false;
     }
     //auto end = std::chrono::high_resolution_clock::now();
     //auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-    //LOG_DEBUG("elapsed time = %d", (int)(elapsedTime.count()));
+    //LOG_DEBUG(MEDIA_INDEXER_IMAGEEXTRACTOR, "elapsed time = %d", (int)(elapsedTime.count()));
     return true;
 }
 
@@ -122,11 +120,11 @@ bool setPngImageResolution(MediaItem &mediaItem, void *ctx)
     auto fname = mediaItem.path().c_str();
     FILE *fp = fopen(fname, "rb");
     if (fp == NULL) {
-        LOG_ERROR(0, "Failed to read file %s", fname);
+        LOG_ERROR(MEDIA_INDEXER_IMAGEEXTRACTOR, 0, "Failed to read file %s", fname);
         return false;
     }
     if (fread(buf, 1, PNG_BYTES_TO_CHECK, fp) != PNG_BYTES_TO_CHECK) {
-        LOG_ERROR(0, "Failed to read %d bytes from file %s", PNG_BYTES_TO_CHECK, fname);
+        LOG_ERROR(MEDIA_INDEXER_IMAGEEXTRACTOR, 0, "Failed to read %d bytes from file %s", PNG_BYTES_TO_CHECK, fname);
         goto png_read_failure;
     }
 
@@ -135,20 +133,20 @@ bool setPngImageResolution(MediaItem &mediaItem, void *ctx)
         png_infop infoPtr;
         pngPtr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
         if (pngPtr == NULL) {
-            LOG_ERROR(0, "Failed to create read struct(type : png_structp)");
+            LOG_ERROR(MEDIA_INDEXER_IMAGEEXTRACTOR, 0, "Failed to create read struct(type : png_structp)");
             goto png_read_failure;
         }
 
         infoPtr = png_create_info_struct(pngPtr);
         if (infoPtr == NULL) {
-            LOG_ERROR(0, "Failed to create info struct(type : png_infop)");
+            LOG_ERROR(MEDIA_INDEXER_IMAGEEXTRACTOR, 0, "Failed to create info struct(type : png_infop)");
             goto png_read_failure;
         }
         png_init_io(pngPtr, fp);
         png_set_sig_bytes(pngPtr, PNG_BYTES_TO_CHECK);
 
         if (setjmp(png_jmpbuf(pngPtr))) {
-            LOG_ERROR(0, "error while reading PNG file");
+            LOG_ERROR(MEDIA_INDEXER_IMAGEEXTRACTOR, 0, "error while reading PNG file");
             png_destroy_read_struct(&pngPtr, &infoPtr, NULL);
             goto png_read_failure;
         }
@@ -160,13 +158,13 @@ bool setPngImageResolution(MediaItem &mediaItem, void *ctx)
         png_destroy_read_struct(&pngPtr, &infoPtr, NULL);
         fclose(fp);
     } else {
-        LOG_ERROR(0, "png_sig_cmp failed");
+        LOG_ERROR(MEDIA_INDEXER_IMAGEEXTRACTOR, 0, "png_sig_cmp failed");
         fclose(fp);
         return false;
     }
     //auto end = std::chrono::high_resolution_clock::now();
     //auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-    //LOG_DEBUG("elapsed time = %d", (int)(elapsedTime.count()));
+    //LOG_DEBUG(MEDIA_INDEXER_IMAGEEXTRACTOR, "elapsed time = %d", (int)(elapsedTime.count()));
     return true;
 png_read_failure:
     fclose(fp);
@@ -180,11 +178,11 @@ bool setGifImageResolution(MediaItem &mediaItem, void *ctx)
     auto fname = mediaItem.path().c_str();
     GifFileType* gifFileType = DGifOpenFileName(fname, &err);
     if (!gifFileType) {
-        LOG_ERROR(0, "DGifOpenFileName() failed - %s", GifErrorString(err));
+        LOG_ERROR(MEDIA_INDEXER_IMAGEEXTRACTOR, 0, "DGifOpenFileName() failed - %s", GifErrorString(err));
         return false;
     }
     if (DGifSlurp(gifFileType) == GIF_ERROR) {
-        LOG_ERROR(0, "DGifSlurp() failed - %s", GifErrorString(gifFileType->Error));
+        LOG_ERROR(MEDIA_INDEXER_IMAGEEXTRACTOR, 0, "DGifSlurp() failed - %s", GifErrorString(gifFileType->Error));
         DGifCloseFile(gifFileType, &err);
         return false;
     }
@@ -193,7 +191,7 @@ bool setGifImageResolution(MediaItem &mediaItem, void *ctx)
     DGifCloseFile(gifFileType, &err);
     //auto end = std::chrono::high_resolution_clock::now();
     //auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-    //LOG_DEBUG("elapsed time = %d", (int)(elapsedTime.count()));
+    //LOG_DEBUG(MEDIA_INDEXER_IMAGEEXTRACTOR, "elapsed time = %d", (int)(elapsedTime.count()));
     return true;
 }
 
@@ -215,13 +213,13 @@ bool ImageExtractor::setDefaultMeta(MediaItem &mediaItem, bool extra) const
     GValue val = G_VALUE_INIT;
     std::string uri = "file://" + mediaItem.path();
     if (!discoverer) {
-        LOG_ERROR(0, "ERROR : Failed to create GstDiscover object");
+        LOG_ERROR(MEDIA_INDEXER_IMAGEEXTRACTOR, 0, "ERROR : Failed to create GstDiscover object");
         return false;
     }
 
     GstDiscovererInfo *discoverInfo = gst_discoverer_discover_uri(discoverer, uri.c_str(), &error);
     if (!discoverInfo) {
-        LOG_ERROR(0, "GStreamer discoverer failed on '%s' with '%s'", uri.c_str(), error->message);
+        LOG_ERROR(MEDIA_INDEXER_IMAGEEXTRACTOR, 0, "GStreamer discoverer failed on '%s' with '%s'", uri.c_str(), error->message);
         if (error)
             g_error_free(error);
         g_object_unref(discoverer);
@@ -269,7 +267,7 @@ bool ImageExtractor::setDefaultMeta(MediaItem &mediaItem, bool extra) const
     }
     //auto end = std::chrono::high_resolution_clock::now();
     //auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-    //LOG_DEBUG("elapsed time = %d", (int)(elapsedTime.count()));
+    //LOG_DEBUG(MEDIA_INDEXER_IMAGEEXTRACTOR, "elapsed time = %d", (int)(elapsedTime.count()));
     if (error)
         g_error_free(error);
     if (discoverInfo)
@@ -357,10 +355,10 @@ bool ImageExtractor::extractMeta(MediaItem &mediaItem, bool extra) const
 {
     std::string uri(mediaItem.path());
     if (mediaItem.type() != MediaItem::Type::Image) {
-        LOG_ERROR(0, "mediaitem type is not image");
+        LOG_ERROR(MEDIA_INDEXER_IMAGEEXTRACTOR, 0, "mediaitem type is not image");
         return false;
     }
-    LOG_DEBUG("Extract meta data from '%s' (%s)b",
+    LOG_DEBUG(MEDIA_INDEXER_IMAGEEXTRACTOR, "Extract meta data from '%s' (%s)b",
         uri.c_str(), MediaItem::mediaTypeToString(mediaItem.type()).c_str());
 
     setMetaCommon(mediaItem);

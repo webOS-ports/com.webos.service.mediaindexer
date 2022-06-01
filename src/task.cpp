@@ -19,7 +19,7 @@
 bool Task::create(Task::taskfunc_t func)
 {
     if (!func) {
-        LOG_ERROR(0, "Invalid task function");
+        LOG_ERROR(MEDIA_INDEXER_TASK, 0, "Invalid task function");
         return false;
     }
 
@@ -65,11 +65,11 @@ void Task::loop()
         taskData *data = static_cast<taskData *>(queue_.front());
         if (!data)
         {
-            LOG_ERROR(0, "Deque data is invalid!");
+            LOG_ERROR(MEDIA_INDEXER_TASK, 0, "Deque data is invalid!");
             continue;
         }
         if (taskFunc) {
-            LOG_INFO(0, "Task Function Start");
+            LOG_INFO(MEDIA_INDEXER_TASK, 0, "Task Function Start");
             taskFunc(data->ctx, data->data);
         }
         if (data)

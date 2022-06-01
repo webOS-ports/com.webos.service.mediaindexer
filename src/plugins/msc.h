@@ -54,9 +54,6 @@ public:
 #endif
 
 private:
-    /// Get message id.
-    LOG_MSGID;
-
     /// Escape sequence of space in volume label.
     inline static const std::string space_ = "\\x20";
 

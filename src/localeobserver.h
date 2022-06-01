@@ -37,7 +37,6 @@ public:
     bool sendMessage(const std::string &uri, const std::string &payload, LocaleObserverCallback cb, void *ctx);
 
 private:
-    LOG_MSGID;
     const std::string url_ = "luna://com.webos.settingsservice/getSystemSettings";
     std::string locale;
     LSHandle *handle_ = nullptr;

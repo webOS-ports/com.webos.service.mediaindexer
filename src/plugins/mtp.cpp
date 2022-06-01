@@ -105,7 +105,7 @@ void Mtp::pollWork(Plugin *plugin)
 {
     using namespace std::chrono_literals;
 
-    LOG_DEBUG("MTP poll work started");
+    LOG_DEBUG(MEDIA_INDEXER_MTP, "MTP poll work started");
 
     while (Mtp::polling_.load()) {
         LIBMTP_raw_device_t *rawDevs = nullptr;
@@ -114,7 +114,7 @@ void Mtp::pollWork(Plugin *plugin)
         auto err = LIBMTP_Detect_Raw_Devices(&rawDevs, &deviceCount);
         switch(err) {
         case LIBMTP_ERROR_NO_DEVICE_ATTACHED:
-            LOG_DEBUG("No MTP device found");
+            LOG_DEBUG(MEDIA_INDEXER_MTP, "No MTP device found");
             break;
         case LIBMTP_ERROR_NONE:
             for (auto i = 0; i < deviceCount; ++i) {
@@ -131,11 +131,11 @@ void Mtp::pollWork(Plugin *plugin)
                 // make sure we have no whitespace characters in the uri
                 std::replace_if(uri.begin(), uri.end(),
                     [](char c) { return std::isspace(c); }, '-');
-                LOG_DEBUG("Device found, constructed uri: '%s'", uri.c_str());
+                LOG_DEBUG(MEDIA_INDEXER_MTP, "Device found, constructed uri: '%s'", uri.c_str());
                 plugin->addDevice(uri, 2);
                 char *name = LIBMTP_Get_Friendlyname(mtpDev);
                 if (name) {
-                    LOG_DEBUG("Device friendly name found: '%s'", name);
+                    LOG_DEBUG(MEDIA_INDEXER_MTP, "Device friendly name found: '%s'", name);
                     plugin->modifyDevice(uri, Device::Meta::Name, name);
                     free(name);
                 } else {
@@ -149,7 +149,7 @@ void Mtp::pollWork(Plugin *plugin)
         case LIBMTP_ERROR_MEMORY_ALLOCATION:
             [[fallthrough]]
         case LIBMTP_ERROR_GENERAL:
-            LOG_ERROR(0, "LIBMTP_Detect_Raw_Devices() failed (%i)", err);
+            LOG_ERROR(MEDIA_INDEXER_MTP, 0, "LIBMTP_Detect_Raw_Devices() failed (%i)", err);
         default: // ignore events we do not need to care about
             break;
         }
@@ -175,7 +175,7 @@ void Mtp::scan(const std::string &uri)
     if (!dev)
         return;
 
-    LOG_INFO(0, "Start file-tree-walk on device '%s'", dev->uri().c_str());
+    LOG_INFO(MEDIA_INDEXER_MTP, 0, "Start file-tree-walk on device '%s'", dev->uri().c_str());
 
     auto obs = dev->observer();
 
@@ -198,7 +198,7 @@ void Mtp::scan(const std::string &uri)
 
     LIBMTP_Release_Device(mtpDev);
 
-    LOG_INFO(0, "File-tree-walk on device '%s' has been completed",
+    LOG_INFO(MEDIA_INDEXER_MTP, 0, "File-tree-walk on device '%s' has been completed",
         dev->uri().c_str());
 }
 
