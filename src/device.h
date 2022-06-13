@@ -88,6 +88,12 @@ public:
 
     virtual ~Device();
 
+    /// Acquire shared lock on device.
+    void lock();
+
+    /// Release shared lock on device.
+    void unlock();
+
     /**
      * \brief If the device is available.
      *

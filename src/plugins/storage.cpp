@@ -72,7 +72,7 @@ int Storage::runDeviceDetection(bool start)
 {
     LOG_DEBUG(MEDIA_INDEXER_STORAGE, "%s all configured paths", start ? "Set" : "Unset");
 
-    for (auto dev : devs_) {
+    for (auto const & dev : devs_) {
         std::stringstream suri;
         suri << Storage::uri << "://" << // Uri identifier.
             dev.path; // Path on local file system.
