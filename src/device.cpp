@@ -124,18 +124,6 @@ void Device::init()
     cleanUpTask_.create(cleanTaskFunc);
 }
 
-void Device::lock()
-{
-    LOG_DEBUG(MEDIA_INDEXER_DEVICE, "Device::lock()");
-    lock_.lock_shared();
-}
-
-void Device::unlock()
-{
-    LOG_DEBUG(MEDIA_INDEXER_DEVICE, "Device::unlock()");
-    lock_.unlock_shared();
-}
-
 bool Device::available(bool check)
 {
     if (check) {
