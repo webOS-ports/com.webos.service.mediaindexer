@@ -243,6 +243,7 @@ bool IndexerService::pushDeviceList(LSMessage *msg)
         auto deviceList = pbnjson::Array();
         plg->lock();
         for (auto const &[uri, dev] : plg->devices()) {
+            dev->lock();
             auto device = pbnjson::Object();
             device.put("available", dev->available());
             device.put("uri", uri);
@@ -267,8 +268,8 @@ bool IndexerService::pushDeviceList(LSMessage *msg)
                 typeStr.append("Count");
                 device.put(typeStr, cnt);
             }
-
             deviceList << device;
+            dev->unlock();
         }
         plg->unlock();
         plugin.put("deviceList", deviceList);
@@ -942,16 +943,17 @@ bool IndexerService::requestMediaScan(LSMessage *msg)
     // generate response
     auto reply = pbnjson::Object();
     for (auto const &[uri, plg] : indexer_->plugins_) {
-        plg->lock();
         for (auto const &[uri, dev] : plg->devices()) {
+            dev->lock();
             if (dev->available() && (!dev->mountpoint().compare(0, path.size(), path))) {
                 LOG_INFO(MEDIA_INDEXER_INDEXERSERVICE, 0, "Media Scan start for device %s", dev->uri().c_str());
                 dev->scan();
                 scanned = true;
+                dev->unlock();
                 break;
             }
+            dev->unlock();
         }
-        plg->unlock();
     }
 
     if (scanned && waitForScan()) {
