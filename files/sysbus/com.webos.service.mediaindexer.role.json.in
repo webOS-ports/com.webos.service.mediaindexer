@@ -1,6 +1,7 @@
 {
     "exeName":"@WEBOS_INSTALL_SBINDIR@/com.webos.service.mediaindexer",
     "type": "regular",
+    "trustLevel" : "oem",
     "allowedNames": [
         "com.webos.service.mediaindexer",
         "com.webos.service.mediaindexer.media",

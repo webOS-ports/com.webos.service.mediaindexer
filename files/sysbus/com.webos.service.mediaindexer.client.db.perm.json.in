@@ -1,5 +1,6 @@
 {
     "com.webos.service.mediaindexer.client.db*": [
-        "database.internal"
+        "mediadatabase.operation",
+        "mediadatabase.management"
     ]
 }
